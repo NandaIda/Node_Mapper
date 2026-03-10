@@ -2,7 +2,7 @@
   import GraphCanvas from './lib/GraphCanvas.svelte';
   import Popups from './lib/Popups.svelte';
   import { onMount } from 'svelte';
-  import { exportData, importData } from './store.js';
+  import { exportData, importData, loadDemoData } from './store.js';
   import { currentCmap, setCmap, getAvailableCmaps, getSwatchColor } from './colormap-store.js';
   import { nodes, edges } from './store.js';
   import { viewBox, zoom, zoomTo, fitToNodes, isAnimating } from './ui-store.js';
@@ -400,6 +400,7 @@
               <li>Edge thickness reflects importance of connected nodes</li>
               <li>Constellation mode animates with ambient music</li>
               <li>Export/import workspaces as JSON with palette</li>
+              <li>Built-in demo graph to explore the tool instantly</li>
               <li>5 color palettes with automatic degree mapping</li>
             </ul>
           </div>
@@ -422,6 +423,17 @@
             <p class="about-text">
               Built with Svelte 5 and Vite. Designed for brainstorming and clustering ideas — importance emerges naturally from connections.
             </p>
+          </div>
+
+          <div class="dialog-section">
+            <span class="dialog-section-title">try it out</span>
+            <p class="about-text" style="margin-bottom: 10px;">
+              Load a sample graph to see how node mapping reveals what matters most. This demo maps the challenges of launching a startup — watch how Funding, MVP, and Team emerge as critical nodes.
+            </p>
+            <button class="demo-btn" on:click={() => { loadDemoData(); showHelp = false; setTimeout(handleFitAll, 100); }}>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+              Load Demo — Startup Launch
+            </button>
           </div>
         </div>
       </div>
@@ -1267,6 +1279,33 @@
     font-size: 12px;
     color: var(--text-color);
     line-height: 1.6;
+  }
+
+  .demo-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+    padding: 10px 14px;
+    background: rgba(6, 182, 212, 0.08);
+    border: 1px solid rgba(6, 182, 212, 0.2);
+    border-radius: 8px;
+    color: var(--primary-color);
+    font-family: var(--font-mono);
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+
+  .demo-btn:hover {
+    background: rgba(6, 182, 212, 0.14);
+    border-color: rgba(6, 182, 212, 0.35);
+    box-shadow: 0 0 16px rgba(6, 182, 212, 0.1);
+  }
+
+  .demo-btn:active {
+    transform: scale(0.98);
   }
 
   /* ─── SCROLLBAR ─── */

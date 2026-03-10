@@ -8,6 +8,10 @@
   <strong>Node Relation Mapper</strong> — brainstorm, cluster, and see what matters most.
 </p>
 
+<p align="center">
+  <a href="https://node-mapper.vercel.app/">https://node-mapper.vercel.app/</a>
+</p>
+
 ---
 
 An interactive graph visualization tool where importance emerges naturally from connections. Create nodes, connect them with directed edges, and the visual hierarchy builds itself — bigger nodes, bolder colors, thicker edges for what's most connected.
