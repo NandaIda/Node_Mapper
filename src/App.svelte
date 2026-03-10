@@ -3,9 +3,54 @@
   import Popups from './lib/Popups.svelte';
   import { onMount } from 'svelte';
   import { exportData, importData } from './store.js';
+  import { currentCmap, colorRange, setCmap, getAvailableCmaps, getNodeColor } from './colormap-store.js';
+  import { nodes } from './store.js';
+  import { viewBox, zoom, zoomTo, fitToNodes } from './ui-store.js';
 
   // Default to dark mode for visual excellence
   let isDarkMode = true;
+
+  // Palette dropdown state
+  let showPaletteDropdown = false;
+  let paletteButtonEl;
+
+  // Zoom control handlers
+  function handleZoomIn() {
+    const centerX = $viewBox.x + $viewBox.width / 2;
+    const centerY = $viewBox.y + $viewBox.height / 2;
+    zoomTo($zoom * 1.25, centerX, centerY);
+  }
+
+  function handleZoomOut() {
+    const centerX = $viewBox.x + $viewBox.width / 2;
+    const centerY = $viewBox.y + $viewBox.height / 2;
+    zoomTo($zoom / 1.25, centerX, centerY);
+  }
+
+  function handleFitAll() {
+    // Get SVG container dimensions
+    const canvasWrapper = document.querySelector('.canvas-wrapper');
+    if (canvasWrapper) {
+      const width = canvasWrapper.clientWidth;
+      const height = canvasWrapper.clientHeight;
+      fitToNodes($nodes, width, height);
+    }
+  }
+
+  function togglePaletteDropdown() {
+    showPaletteDropdown = !showPaletteDropdown;
+  }
+
+  function handleSelectCmap(cmapName) {
+    setCmap(cmapName);
+    showPaletteDropdown = false;
+  }
+
+  function handleClickOutside(e) {
+    if (showPaletteDropdown && paletteButtonEl && !paletteButtonEl.contains(e.target)) {
+      showPaletteDropdown = false;
+    }
+  }
 
   function toggleTheme() {
     isDarkMode = !isDarkMode;
@@ -42,7 +87,7 @@
   });
 </script>
 
-<main class="app-container">
+<main class="app-container" on:click={handleClickOutside}>
   <header class="app-header">
     <div class="header-text">
       <h1>Graph Plotter Node Relation</h1>
@@ -58,7 +103,61 @@
         <span>Import</span>
       </button>
       <input type="file" accept=".json" bind:this={fileInput} on:change={handleImport} style="display: none;" />
-      
+
+      <button class="action-btn" on:click={handleZoomIn} title="Zoom In">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.35-4.35"></path><line x1="11" y1="8" x2="11" y2="14"></line><line x1="8" y1="11" x2="14" y2="11"></line></svg>
+        <span>+</span>
+      </button>
+
+      <button class="action-btn" on:click={handleZoomOut} title="Zoom Out">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.35-4.35"></path><line x1="8" y1="11" x2="14" y2="11"></line></svg>
+        <span>−</span>
+      </button>
+
+      <button class="action-btn" on:click={handleFitAll} title="Fit All Nodes">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v3m18-5h3a2 2 0 0 1 2 2v3M3 16v3a2 2 0 0 0 2 2h3m14 0h3a2 2 0 0 0 2-2v-3"></path></svg>
+        <span>Fit</span>
+      </button>
+
+      <div class="palette-button-wrapper" bind:this={paletteButtonEl}>
+        <button class="action-btn palette-btn" on:click={togglePaletteDropdown} title="Switch Color Palette">
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"></circle>
+            <circle cx="12" cy="12" r="6" fill="currentColor" opacity="0.3"></circle>
+            <path d="M12 2a10 10 0 0 1 10 10"></path>
+          </svg>
+          <span>Palette</span>
+        </button>
+
+        {#if showPaletteDropdown}
+          <div class="palette-dropdown" role="listbox" on:click|stopPropagation>
+            <div class="palette-dropdown-header">
+              <h4>Color Palettes</h4>
+              <span class="color-range-label">Colors: {Math.max(5, $nodes.length)}</span>
+            </div>
+            <div class="palette-list">
+              {#each getAvailableCmaps() as cmapName}
+                <button
+                  class="palette-option {$currentCmap === cmapName ? 'active' : ''}"
+                  on:click={() => handleSelectCmap(cmapName)}
+                  title={`Switch to ${cmapName} palette`}
+                >
+                  <span class="palette-name">{cmapName.charAt(0).toUpperCase() + cmapName.slice(1)}</span>
+                  <div class="color-swatches">
+                    {#each [0, 1, 2, 3, 4] as i}
+                      <div
+                        class="swatch"
+                        style="background-color: {getNodeColor(i, 5)};"
+                      ></div>
+                    {/each}
+                  </div>
+                </button>
+              {/each}
+            </div>
+          </div>
+        {/if}
+      </div>
+
       <button class="theme-toggle" on:click={toggleTheme} aria-label="Toggle Theme" title="Toggle Theme">
         {#if isDarkMode}
           <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
@@ -211,5 +310,131 @@
     flex: 1;
     position: relative;
     overflow: hidden;
+  }
+
+  .palette-button-wrapper {
+    position: relative;
+  }
+
+  .palette-btn {
+    position: relative;
+  }
+
+  .palette-dropdown {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    background: var(--secondary-color);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.5), 0 4px 6px -2px rgba(0, 0, 0, 0.3);
+    z-index: 200;
+    min-width: 260px;
+    margin-top: 8px;
+    animation: fadeScale 0.2s ease-out forwards;
+  }
+
+  .palette-dropdown-header {
+    padding: 12px 15px;
+    border-bottom: 1px solid var(--border-color);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .palette-dropdown-header h4 {
+    margin: 0;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-color);
+  }
+
+  .color-range-label {
+    font-size: 12px;
+    color: var(--text-color);
+    opacity: 0.7;
+    white-space: nowrap;
+  }
+
+  .palette-list {
+    display: flex;
+    flex-direction: column;
+    max-height: 300px;
+    overflow-y: auto;
+  }
+
+  .palette-option {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 15px;
+    background: transparent;
+    border: none;
+    border-bottom: 1px solid var(--border-color);
+    color: var(--text-color);
+    cursor: pointer;
+    text-align: left;
+    transition: background-color 0.15s;
+  }
+
+  .palette-option:last-child {
+    border-bottom: none;
+  }
+
+  .palette-option:hover {
+    background-color: rgba(59, 130, 246, 0.1);
+  }
+
+  .palette-option.active {
+    background-color: rgba(59, 130, 246, 0.2);
+    border-left: 3px solid var(--primary-color);
+    padding-left: 12px;
+  }
+
+  .palette-name {
+    font-size: 13px;
+    font-weight: 500;
+    min-width: 70px;
+  }
+
+  .color-swatches {
+    display: flex;
+    gap: 6px;
+    flex: 1;
+  }
+
+  .swatch {
+    width: 20px;
+    height: 20px;
+    border-radius: 4px;
+    border: 1px solid var(--border-color);
+    flex-shrink: 0;
+  }
+
+  /* Custom Scrollbar for palette list */
+  .palette-list::-webkit-scrollbar {
+    width: 6px;
+  }
+  .palette-list::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  .palette-list::-webkit-scrollbar-thumb {
+    background: var(--border-color);
+    border-radius: 3px;
+  }
+  .palette-list::-webkit-scrollbar-thumb:hover {
+    background: rgba(59, 130, 246, 0.5);
+  }
+
+  @keyframes fadeScale {
+    0% {
+      opacity: 0;
+      transform: translateY(-5px) scale(0.95);
+    }
+    100% {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
   }
 </style>

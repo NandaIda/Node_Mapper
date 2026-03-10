@@ -27,8 +27,8 @@
 
   function handleAddNode() {
     if (nodeLabel.trim() === '') return;
-    const newId = addNode($popupState.x, $popupState.y, nodeLabel, nodeDescription, nodeColor);
-    
+    const newId = addNode($popupState.svgX, $popupState.svgY, nodeLabel, nodeDescription);
+
     // Create relations
     targetRelations.forEach(rel => {
       if (rel.selected && rel.targetId) {
@@ -139,10 +139,6 @@
         bind:value={nodeDescription}
         rows="2"
       ></textarea>
-      <div class="color-picker">
-        <label for="nodeColorInput">Color:</label>
-        <input id="nodeColorInput" type="color" bind:value={nodeColor} />
-      </div>
 
       {#if targetRelations.length > 0}
         <div class="relations-section">

@@ -1,11 +1,16 @@
 <script>
   import { selectedNodeId, popupState } from '../ui-store.js';
-  import { removeNode } from '../store.js';
+  import { removeNode, nodes } from '../store.js';
+  import { getNodeColor, colorRange } from '../colormap-store.js';
   export let node;
+  export let index;
   export let onMouseDown;
 
   $: isSelected = $selectedNodeId === node.id;
   $: displayDesc = node.description ? (node.description.includes('\n') || node.description.length > 20 ? node.description.split('\n')[0].substring(0, 20) + '...' : node.description) : '';
+
+  // Compute fill color: use manual override if set to something other than default, otherwise use colormap
+  $: fillColor = node.color && node.color !== '#3b82f6' ? node.color : getNodeColor(index, $nodes.length);
 
   function handleAddRelation() {
     popupState.set({
@@ -18,17 +23,17 @@
   }
 
   function handleDoubleClick(e) {
-    // We want the popup to appear near the node.
-    // Let's get the absolute screen coordinates so the popup, which is absolutely positioned
-    // over the canvas wrapper, appears in the right place.
-    const rect = e.target.closest('svg').getBoundingClientRect();
-    const popupX = node.x + rect.left + 40;
-    const popupY = node.y + rect.top;
+    // Convert SVG coordinates to screen coordinates using CTM (Current Transformation Matrix).
+    const svg = e.target.closest('svg');
+    const ctm = svg.getScreenCTM();
+
+    const screenX = ctm.a * node.x + ctm.e + 40;
+    const screenY = ctm.d * node.y + ctm.f;
 
     popupState.set({
       type: 'EDIT_NODE',
-      x: popupX,
-      y: popupY,
+      x: screenX,
+      y: screenY,
       sourceNodeId: null,
       editTargetId: node.id
     });
@@ -45,7 +50,7 @@
 >
   <circle
     r="24"
-    fill={node.color || 'var(--node-bg)'}
+    fill={fillColor}
     stroke={isSelected ? 'var(--accent-color)' : 'var(--border-color)'}
     stroke-width={isSelected ? "3" : "2"}
     class="node-circle"
