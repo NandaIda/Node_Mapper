@@ -4,10 +4,13 @@
   export let edge;
   export let degreeMap = {};
   export let maxDegree = 0;
+  export let hoveredNodeId = null;
 
   $: source = $nodes.find(n => n.id === edge.sourceId);
   $: target = $nodes.find(n => n.id === edge.targetId);
   $: isSelected = $selectedEdgeId === edge.id;
+  $: isHighlighted = hoveredNodeId && (edge.sourceId === hoveredNodeId || edge.targetId === hoveredNodeId);
+  let isHovered = false;
   $: displayDesc = edge.description ? (edge.description.includes('\n') || edge.description.length > 20 ? edge.description.split('\n')[0].substring(0, 20) + '...' : edge.description) : '';
 
   function handleSelect() {
@@ -70,7 +73,8 @@
 </script>
 
 {#if source && target}
-  <g class="edge-group">
+  <!-- svelte-ignore a11y-no-static-element-interactions -->
+  <g class="edge-group" on:mouseenter={() => isHovered = true} on:mouseleave={() => isHovered = false}>
     <!-- svelte-ignore a11y-no-static-element-interactions -->
     <path
       d={pathStr}
@@ -86,11 +90,11 @@
     />
     <path
       d={pathStr}
-      stroke={isSelected ? "var(--accent-color)" : "var(--canvas-edge)"}
-      stroke-width={isSelected ? edgeWidth + 1.5 : edgeWidth}
-      stroke-opacity={isSelected ? 0.9 : edgeOpacity}
+      stroke={isSelected ? "var(--accent-color)" : (isHighlighted || isHovered) ? "var(--primary-color)" : "var(--canvas-edge)"}
+      stroke-width={isSelected ? edgeWidth + 1.5 : (isHighlighted || isHovered) ? edgeWidth + 0.8 : edgeWidth}
+      stroke-opacity={isSelected ? 0.9 : (isHighlighted || isHovered) ? 0.8 : edgeOpacity}
       fill="none"
-      marker-end="url(#arrowhead)"
+      marker-end={isSelected ? "url(#arrowhead-selected)" : (isHighlighted || isHovered) ? "url(#arrowhead-highlight)" : "url(#arrowhead)"}
       class="edge-path"
     />
     {#if edge.label || edge.description}
@@ -149,10 +153,6 @@
   }
   .edge-hover-area {
     pointer-events: stroke;
-  }
-  .edge-group:hover .edge-path {
-    stroke: var(--primary-color);
-    stroke-opacity: 0.6;
   }
   .edge-label-bg {
     pointer-events: none;

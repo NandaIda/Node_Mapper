@@ -17,6 +17,7 @@
   let selectedTrack = storedTrack ? parseInt(storedTrack, 10) : 0;
   let audio;
   let audioReady = false;
+  let isPlayingMusic = false;
   let showTrackPicker = false;
   let trackPickerEl;
 
@@ -30,12 +31,14 @@
     }
   });
 
-  // Play/pause music with constellation mode — never reset currentTime
-  $: if (audioReady && audio) {
-    if ($isAnimating) {
-      audio.play().catch(() => {});
-    } else {
-      audio.pause();
+  function toggleMusic() {
+    isPlayingMusic = !isPlayingMusic;
+    if (audioReady && audio) {
+      if (isPlayingMusic) {
+        audio.play().catch(() => {});
+      } else {
+        audio.pause();
+      }
     }
   }
 
@@ -48,7 +51,7 @@
     if (audio) {
       audio.src = tracks[i].file;
       audio.currentTime = 0;
-      if ($isAnimating) {
+      if (isPlayingMusic) {
         audio.play().catch(() => {});
       }
     }
@@ -219,9 +222,23 @@
         class="tool-btn constellation-btn"
         class:active={$isAnimating}
         on:click={() => isAnimating.update(v => !v)}
-        title={$isAnimating ? 'Stop' : 'Constellation Mode'}
+        title={$isAnimating ? 'Stop Constellation' : 'Constellation Mode'}
       >
-        {#if $isAnimating}
+        <!-- Star/sparkle icon for constellation -->
+        <svg width="14" height="14" viewBox="0 0 24 24" fill={$isAnimating ? 'currentColor' : 'none'} stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+      </button>
+    </div>
+
+    <div class="toolbar-divider"></div>
+
+    <div class="toolbar-group">
+      <button
+        class="tool-btn music-play-btn"
+        class:active={isPlayingMusic}
+        on:click={toggleMusic}
+        title={isPlayingMusic ? 'Pause Music' : 'Play Music'}
+      >
+        {#if isPlayingMusic}
           <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" stroke="none"><rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/></svg>
         {:else}
           <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" stroke="none"><polygon points="6,4 20,12 6,20"/></svg>
@@ -229,7 +246,7 @@
       </button>
 
       <div class="track-picker-wrapper" bind:this={trackPickerEl}>
-        <button class="tool-btn music-btn" on:click={() => showTrackPicker = !showTrackPicker} title="Select Music">
+        <button class="tool-btn music-btn" on:click={() => showTrackPicker = !showTrackPicker} title="Select Track">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
         </button>
 
@@ -687,6 +704,21 @@
   @keyframes btn-glow {
     0%, 100% { box-shadow: 0 0 8px rgba(244, 114, 182, 0.1); }
     50% { box-shadow: 0 0 16px rgba(244, 114, 182, 0.25); }
+  }
+
+  .music-play-btn {
+    color: var(--primary-color);
+  }
+
+  .music-play-btn:hover {
+    background: rgba(6, 182, 212, 0.1);
+    border-color: rgba(6, 182, 212, 0.25);
+  }
+
+  .music-play-btn.active {
+    color: var(--primary-color);
+    background: rgba(6, 182, 212, 0.12);
+    border-color: rgba(6, 182, 212, 0.3);
   }
 
   .theme-btn {

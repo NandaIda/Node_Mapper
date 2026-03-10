@@ -1,47 +1,12 @@
 <script>
   import { onMount, onDestroy } from 'svelte';
   import { nodes, edges, updateNodePosition } from '../store.js';
-  import { popupState, selectedNodeId, selectedEdgeId, viewBox, zoom, panBy, zoomTo, isAnimating } from '../ui-store.js';
+  import { popupState, selectedNodeId, selectedEdgeId, hoveredNodeId, viewBox, zoom, panBy, zoomTo, isAnimating } from '../ui-store.js';
   import Node from './Node.svelte';
   import Edge from './Edge.svelte';
 
-  // Constellation animation — purely visual offsets, never touches store
-  let animFrame;
-  let animTime = 0;
-  let animOffsets = {}; // { nodeId: { dx, dy } }
-
-  $: if ($isAnimating) {
-    animTime = 0;
-    startAnimation();
-  } else {
-    stopAnimation();
-  }
-
-  function startAnimation() {
-    if (animFrame) return;
-    const tick = () => {
-      animTime += 0.012;
-      const offsets = {};
-      $nodes.forEach((n, i) => {
-        const phase = i * 1.37;
-        offsets[n.id] = {
-          dx: Math.sin(animTime * 0.7 + phase) * 2.5 + Math.sin(animTime * 1.3 + phase * 0.5) * 1,
-          dy: Math.cos(animTime * 0.9 + phase * 0.8) * 2.5 + Math.cos(animTime * 0.5 + phase) * 1
-        };
-      });
-      animOffsets = offsets;
-      animFrame = requestAnimationFrame(tick);
-    };
-    animFrame = requestAnimationFrame(tick);
-  }
-
-  function stopAnimation() {
-    if (animFrame) {
-      cancelAnimationFrame(animFrame);
-      animFrame = null;
-    }
-    animOffsets = {};
-  }
+  // Constellation mode — no node movement, just CSS glow pulse + music
+  // The `animating` prop on Node triggers the pulsing class via CSS only
 
   // Compute degree for each node
   $: degreeMap = (() => {
@@ -196,7 +161,6 @@
 
   onDestroy(() => {
     if (resizeObserver) resizeObserver.disconnect();
-    if (animFrame) cancelAnimationFrame(animFrame);
   });
 </script>
 
@@ -218,12 +182,18 @@
     <marker id="arrowhead" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
       <polygon points="0 0, 8 3, 0 6" fill="var(--canvas-edge)" />
     </marker>
+    <marker id="arrowhead-highlight" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+      <polygon points="0 0, 8 3, 0 6" fill="var(--primary-color)" />
+    </marker>
+    <marker id="arrowhead-selected" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+      <polygon points="0 0, 8 3, 0 6" fill="var(--accent-color)" />
+    </marker>
   </defs>
 
   <!-- Edges -->
   <g class="edges">
     {#each $edges as edge (edge.id)}
-      <Edge {edge} {degreeMap} {maxDegree} />
+      <Edge {edge} {degreeMap} {maxDegree} hoveredNodeId={$hoveredNodeId} />
     {/each}
   </g>
 
@@ -235,8 +205,6 @@
         degree={degreeMap[node.id] || 0}
         {maxDegree}
         animating={$isAnimating}
-        offsetX={animOffsets[node.id]?.dx || 0}
-        offsetY={animOffsets[node.id]?.dy || 0}
         onMouseDown={(e) => handleNodeMouseDown(e, node.id)}
       />
     {/each}

@@ -10,6 +10,7 @@ export const popupState = writable({
 
 export const selectedNodeId = writable(null);
 export const selectedEdgeId = writable(null);
+export const hoveredNodeId = writable(null);
 
 // Constellation animation mode
 export const isAnimating = writable(false);

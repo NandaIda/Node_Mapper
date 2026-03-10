@@ -1,13 +1,11 @@
 <script>
-  import { selectedNodeId, popupState } from '../ui-store.js';
+  import { selectedNodeId, popupState, hoveredNodeId } from '../ui-store.js';
   import { removeNode } from '../store.js';
   import { getNodeColorByDegree, currentCmap } from '../colormap-store.js';
   export let node;
   export let degree = 0;
   export let maxDegree = 0;
   export let animating = false;
-  export let offsetX = 0;
-  export let offsetY = 0;
   export let onMouseDown;
 
   $: isSelected = $selectedNodeId === node.id;
@@ -53,11 +51,13 @@
   class="node-group {isSelected ? 'selected' : ''}"
   role="button"
   tabindex="0"
-  transform="translate({node.x + offsetX}, {node.y + offsetY})"
+  transform="translate({node.x}, {node.y})"
   on:mousedown|stopPropagation={onMouseDown}
   on:dblclick|stopPropagation={handleDoubleClick}
+  on:mouseenter={() => hoveredNodeId.set(node.id)}
+  on:mouseleave={() => hoveredNodeId.set(null)}
 >
-  <!-- Ambient glow behind node -->
+  <!-- Ambient glow — real blur, browser caches when static, pulse is opacity-only so still cheap -->
   <circle
     r={radius * 1.8}
     fill={fillColor}
@@ -133,12 +133,11 @@
     animation: constellation-pulse 3s ease-in-out infinite;
   }
   @keyframes constellation-pulse {
-    0%, 100% { opacity: 0.15; transform: scale(1); }
-    50% { opacity: 0.55; transform: scale(1.15); }
+    0%, 100% { opacity: 0.15; }
+    50% { opacity: 0.55; }
   }
   .node-circle {
-    transition: stroke 0.2s, stroke-width 0.2s, fill 0.3s, filter 0.3s;
-    filter: var(--node-shadow);
+    transition: stroke 0.2s, stroke-width 0.2s, fill 0.3s;
   }
   .node-highlight {
     pointer-events: none;
@@ -148,7 +147,8 @@
     opacity: 0.6;
   }
   .node-group:hover .node-circle {
-    filter: drop-shadow(0 0 16px rgba(6, 182, 212, 0.3));
+    stroke: var(--primary-color, #06b6d4);
+    stroke-width: 2;
   }
   .node-label {
     font-family: var(--font-body, 'DM Sans', system-ui, sans-serif);
