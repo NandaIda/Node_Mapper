@@ -5,6 +5,18 @@
   import Node from './Node.svelte';
   import Edge from './Edge.svelte';
 
+  // Compute degree for each node
+  $: degreeMap = (() => {
+    const map = {};
+    $nodes.forEach(n => map[n.id] = 0);
+    $edges.forEach(e => {
+      if (map[e.sourceId] !== undefined) map[e.sourceId]++;
+      if (map[e.targetId] !== undefined) map[e.targetId]++;
+    });
+    return map;
+  })();
+  $: maxDegree = Math.max(0, ...Object.values(degreeMap));
+
   let svg;
   let isDraggingNode = false;
   let draggedNodeId = null;
@@ -117,7 +129,7 @@
     const coords = clientToSvgCoords(e.clientX, e.clientY);
 
     // Determine zoom direction
-    const zoomFactor = e.deltaY > 0 ? 1.1 : 0.9;
+    const zoomFactor = e.deltaY > 0 ? 0.9 : 1.1;
     const newZoom = Math.max(0.1, Math.min(5, $zoom * zoomFactor));
 
     // Calculate new viewBox to keep mouse position stable
@@ -198,7 +210,7 @@
   <!-- Edges -->
   <g class="edges">
     {#each $edges as edge (edge.id)}
-      <Edge {edge} />
+      <Edge {edge} {degreeMap} {maxDegree} />
     {/each}
   </g>
 
@@ -207,7 +219,8 @@
     {#each $nodes as node, index (node.id)}
       <Node
         {node}
-        {index}
+        degree={degreeMap[node.id] || 0}
+        {maxDegree}
         onMouseDown={(e) => handleNodeMouseDown(e, node.id)}
       />
     {/each}

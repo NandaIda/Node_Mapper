@@ -3,9 +3,37 @@
   import Popups from './lib/Popups.svelte';
   import { onMount } from 'svelte';
   import { exportData, importData } from './store.js';
-  import { currentCmap, colorRange, setCmap, getAvailableCmaps, getNodeColor } from './colormap-store.js';
-  import { nodes } from './store.js';
+  import { currentCmap, setCmap, getAvailableCmaps, getSwatchColor } from './colormap-store.js';
+  import { nodes, edges } from './store.js';
   import { viewBox, zoom, zoomTo, fitToNodes } from './ui-store.js';
+
+  // Statistics panel state
+  let showStats = false;
+
+  // Compute statistics reactively
+  $: nodeCount = $nodes.length;
+  $: edgeCount = $edges.length;
+  $: nodesWithDesc = $nodes.filter(n => n.description).length;
+  $: edgesWithLabel = $edges.filter(e => e.label).length;
+
+  // Degree counts per node
+  $: degreeMap = (() => {
+    const map = {};
+    $nodes.forEach(n => map[n.id] = { label: n.label, in: 0, out: 0 });
+    $edges.forEach(e => {
+      if (map[e.sourceId]) map[e.sourceId].out++;
+      if (map[e.targetId]) map[e.targetId].in++;
+    });
+    return map;
+  })();
+
+  $: mostConnected = Object.values(degreeMap)
+    .map(d => ({ ...d, total: d.in + d.out }))
+    .sort((a, b) => b.total - a.total)
+    .slice(0, 5);
+
+  // Nodes with no connections (isolated)
+  $: isolatedCount = Object.values(degreeMap).filter(d => d.in + d.out === 0).length;
 
   // Default to dark mode for visual excellence
   let isDarkMode = true;
@@ -90,7 +118,10 @@
 <main class="app-container" on:click={handleClickOutside}>
   <header class="app-header">
     <div class="header-text">
-      <h1>Graph Plotter Node Relation</h1>
+      <div class="brand">
+        <img src="/logo.svg" alt="Logo" class="brand-logo" />
+        <h1>Graph Plotter Node Relation</h1>
+      </div>
       <p>Double-click to create a node. Click an existing node to select it, or drag to move.</p>
     </div>
     <div class="header-actions">
@@ -147,7 +178,7 @@
                     {#each [0, 1, 2, 3, 4] as i}
                       <div
                         class="swatch"
-                        style="background-color: {getNodeColor(i, 5)};"
+                        style="background-color: {getSwatchColor(cmapName, i)};"
                       ></div>
                     {/each}
                   </div>
@@ -170,6 +201,59 @@
   
   <div class="canvas-wrapper">
     <GraphCanvas />
+  </div>
+
+  <!-- Statistics Button & Panel -->
+  <div class="stats-wrapper">
+    <button
+      class="stats-btn"
+      on:click={() => showStats = !showStats}
+      title="Graph Statistics"
+    >
+      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>
+      <span>Stats</span>
+    </button>
+
+    {#if showStats}
+      <div class="stats-panel">
+        <div class="stats-header">
+          <h4>Graph Statistics</h4>
+          <button class="stats-close" on:click={() => showStats = false}>&times;</button>
+        </div>
+        <div class="stats-body">
+          <div class="stats-row">
+            <span class="stats-label">Nodes</span>
+            <span class="stats-value">{nodeCount}</span>
+          </div>
+          <div class="stats-row">
+            <span class="stats-label">Edges</span>
+            <span class="stats-value">{edgeCount}</span>
+          </div>
+          <div class="stats-row">
+            <span class="stats-label">Nodes with description</span>
+            <span class="stats-value">{nodesWithDesc}</span>
+          </div>
+          <div class="stats-row">
+            <span class="stats-label">Edges with label</span>
+            <span class="stats-value">{edgesWithLabel}</span>
+          </div>
+          <div class="stats-row">
+            <span class="stats-label">Isolated nodes</span>
+            <span class="stats-value">{isolatedCount}</span>
+          </div>
+
+          {#if mostConnected.length > 0}
+            <div class="stats-section-title">Most Connected</div>
+            {#each mostConnected as node}
+              <div class="stats-row compact">
+                <span class="stats-label">{node.label}</span>
+                <span class="stats-value">{node.total} <span class="stats-detail">({node.in}in {node.out}out)</span></span>
+              </div>
+            {/each}
+          {/if}
+        </div>
+      </div>
+    {/if}
   </div>
 
   <Popups />
@@ -238,6 +322,18 @@
     z-index: 10;
     box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
     transition: background-color 0.3s ease, border-color 0.3s ease;
+  }
+
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .brand-logo {
+    width: 38px;
+    height: 38px;
+    border-radius: 8px;
   }
 
   .app-header h1 {
@@ -425,6 +521,121 @@
   }
   .palette-list::-webkit-scrollbar-thumb:hover {
     background: rgba(59, 130, 246, 0.5);
+  }
+
+  /* Statistics */
+  .stats-wrapper {
+    position: fixed;
+    bottom: 16px;
+    left: 16px;
+    z-index: 100;
+  }
+
+  .stats-btn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--secondary-color);
+    border: 1px solid var(--border-color);
+    color: var(--text-color);
+    padding: 8px 14px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  }
+
+  .stats-btn:hover {
+    background: rgba(59, 130, 246, 0.15);
+    border-color: var(--primary-color);
+    color: var(--primary-color);
+  }
+
+  .stats-panel {
+    position: absolute;
+    bottom: calc(100% + 8px);
+    left: 0;
+    background: var(--secondary-color);
+    border: 1px solid var(--border-color);
+    border-radius: 10px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
+    min-width: 260px;
+    animation: fadeScale 0.2s ease-out forwards;
+  }
+
+  .stats-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--border-color);
+  }
+
+  .stats-header h4 {
+    margin: 0;
+    font-size: 13px;
+    font-weight: 600;
+  }
+
+  .stats-close {
+    background: none;
+    border: none;
+    color: var(--text-color);
+    font-size: 18px;
+    cursor: pointer;
+    opacity: 0.6;
+    padding: 0 4px;
+    line-height: 1;
+  }
+
+  .stats-close:hover {
+    opacity: 1;
+  }
+
+  .stats-body {
+    padding: 10px 14px;
+  }
+
+  .stats-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 5px 0;
+  }
+
+  .stats-row.compact {
+    padding: 3px 0;
+  }
+
+  .stats-label {
+    font-size: 12px;
+    opacity: 0.8;
+  }
+
+  .stats-value {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--primary-color);
+  }
+
+  .stats-detail {
+    font-size: 10px;
+    font-weight: 400;
+    opacity: 0.6;
+    color: var(--text-color);
+  }
+
+  .stats-section-title {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    opacity: 0.5;
+    margin-top: 8px;
+    padding-top: 8px;
+    border-top: 1px solid var(--border-color);
   }
 
   @keyframes fadeScale {

@@ -1,16 +1,24 @@
 <script>
   import { selectedNodeId, popupState } from '../ui-store.js';
-  import { removeNode, nodes } from '../store.js';
-  import { getNodeColor, colorRange } from '../colormap-store.js';
+  import { removeNode } from '../store.js';
+  import { getNodeColorByDegree, currentCmap } from '../colormap-store.js';
   export let node;
-  export let index;
+  export let degree = 0;
+  export let maxDegree = 0;
   export let onMouseDown;
 
   $: isSelected = $selectedNodeId === node.id;
   $: displayDesc = node.description ? (node.description.includes('\n') || node.description.length > 20 ? node.description.split('\n')[0].substring(0, 20) + '...' : node.description) : '';
 
-  // Compute fill color: use manual override if set to something other than default, otherwise use colormap
-  $: fillColor = node.color && node.color !== '#3b82f6' ? node.color : getNodeColor(index, $nodes.length);
+  // Color by degree: more connections = further along the colormap
+  $: fillColor = getNodeColorByDegree(degree, maxDegree, $currentCmap);
+
+  // Scale node size and label by degree (importance)
+  // Radius: 18 (isolated) to 40 (most connected)
+  $: t = maxDegree > 0 ? degree / maxDegree : 0;
+  $: radius = 18 + t * 22;
+  $: fontSize = 12 + t * 6;
+  $: descFontSize = 9 + t * 3;
 
   function handleAddRelation() {
     popupState.set({
@@ -49,26 +57,28 @@
   on:dblclick|stopPropagation={handleDoubleClick}
 >
   <circle
-    r="24"
+    r={radius}
     fill={fillColor}
     stroke={isSelected ? 'var(--accent-color)' : 'var(--border-color)'}
     stroke-width={isSelected ? "3" : "2"}
     class="node-circle"
   />
-  <text 
-    y="40" 
-    text-anchor="middle" 
+  <text
+    y={radius + 16}
+    text-anchor="middle"
     fill="var(--text-color)"
     class="node-label"
+    style="font-size: {fontSize}px;"
   >
     {node.label}
   </text>
   {#if node.description}
-    <text 
-      y="58" 
-      text-anchor="middle" 
+    <text
+      y={radius + 32}
+      text-anchor="middle"
       fill="var(--canvas-edge)"
       class="node-description"
+      style="font-size: {descFontSize}px;"
     >
       {displayDesc}
     </text>
@@ -77,14 +87,14 @@
   {#if isSelected}
     <!-- Small plus button to add relation -->
     <!-- svelte-ignore a11y-no-static-element-interactions -->
-    <g class="action-btn" transform="translate(20, -20)" on:mousedown|stopPropagation={handleAddRelation}>
+    <g class="action-btn" transform="translate({radius * 0.7}, {-radius * 0.7})" on:mousedown|stopPropagation={handleAddRelation}>
       <circle r="12" fill="var(--primary-color)" />
       <path d="M-5,0 H5 M0,-5 V5" stroke="white" stroke-width="2" />
     </g>
 
     <!-- Small trash/delete button to remove node -->
     <!-- svelte-ignore a11y-no-static-element-interactions -->
-    <g class="action-btn delete-node-btn" transform="translate(-20, -20)" on:mousedown|stopPropagation={() => removeNode(node.id)}>
+    <g class="action-btn delete-node-btn" transform="translate({-radius * 0.7}, {-radius * 0.7})" on:mousedown|stopPropagation={() => removeNode(node.id)}>
       <circle r="12" fill="var(--danger-color)" />
       <path d="M-3 -3 L3 3 M3 -3 L-3 3" stroke="white" stroke-width="2" stroke-linecap="round" />
     </g>
@@ -110,14 +120,12 @@
     filter: drop-shadow(0 0 10px rgba(59, 130, 246, 0.4));
   }
   .node-label {
-    font-size: 14px;
     font-weight: 500;
     pointer-events: none;
     text-shadow: var(--text-shadow);
     transition: fill 0.3s ease;
   }
   .node-description {
-    font-size: 11px;
     font-style: italic;
     pointer-events: none;
     text-shadow: var(--text-shadow);

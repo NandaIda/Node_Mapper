@@ -4,7 +4,6 @@
   
   let nodeLabel = '';
   let nodeDescription = '';
-  let nodeColor = '#3b82f6';
   
   // Array to hold multiple target relations for the new node
   let targetRelations = [];
@@ -47,7 +46,7 @@
 
   function handleEditNode() {
     if (nodeLabel.trim() === '') return;
-    updateNode($popupState.editTargetId, { label: nodeLabel, description: nodeDescription, color: nodeColor });
+    updateNode($popupState.editTargetId, { label: nodeLabel, description: nodeDescription });
     closePopup();
   }
 
@@ -72,7 +71,6 @@
     if (nodeToEdit && nodeLabel === '') {
       nodeLabel = nodeToEdit.label || '';
       nodeDescription = nodeToEdit.description || '';
-      nodeColor = nodeToEdit.color || '#3b82f6';
     }
   } else if ($popupState.type === 'EDIT_RELATION') {
     const edgeToEdit = $edges.find(e => e.id === $popupState.editTargetId);
@@ -232,10 +230,6 @@
         bind:value={nodeDescription}
         rows="2"
       ></textarea>
-      <div class="color-picker">
-        <label for="nodeColorInput">Color:</label>
-        <input id="nodeColorInput" type="color" bind:value={nodeColor} />
-      </div>
       <button class="primary-btn" on:click={handleEditNode}>Save</button>
     </div>
   </div>
@@ -472,21 +466,6 @@
   input:focus, select:focus, textarea:focus {
     outline: none;
     border-color: var(--primary-color);
-  }
-
-  .color-picker {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    font-size: 14px;
-  }
-  .color-picker input[type="color"] {
-    width: 40px;
-    height: 30px;
-    padding: 0;
-    border: none;
-    cursor: pointer;
-    border-radius: 4px;
   }
 
   .primary-btn {

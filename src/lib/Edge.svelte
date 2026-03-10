@@ -2,6 +2,8 @@
   import { nodes, removeEdge } from '../store.js';
   import { selectedEdgeId, selectedNodeId } from '../ui-store.js';
   export let edge;
+  export let degreeMap = {};
+  export let maxDegree = 0;
   
   $: source = $nodes.find(n => n.id === edge.sourceId);
   $: target = $nodes.find(n => n.id === edge.targetId);
@@ -35,6 +37,19 @@
     });
   }
 
+  // Edge thickness based on combined importance of source + target
+  $: sourceDeg = source ? (degreeMap[source.id] || 0) : 0;
+  $: targetDeg = target ? (degreeMap[target.id] || 0) : 0;
+  $: edgeImportance = maxDegree > 0 ? (sourceDeg + targetDeg) / (2 * maxDegree) : 0;
+  $: edgeWidth = 1.5 + edgeImportance * 3;
+
+  // Dynamic radius per node based on degree
+  function nodeRadius(nodeId) {
+    const deg = degreeMap[nodeId] || 0;
+    const t = maxDegree > 0 ? deg / maxDegree : 0;
+    return 18 + t * 22;
+  }
+
   // Calculate coordinates to draw arrow boundary to boundary
   $: pathStr = source && target ? calculatePath(source, target) : '';
 
@@ -43,15 +58,16 @@
     const dy = t.y - s.y;
     const dist = Math.sqrt(dx * dx + dy * dy);
     if (dist === 0) return '';
-    
-    const radius = 24; 
+
+    const sRadius = nodeRadius(s.id);
+    const tRadius = nodeRadius(t.id);
     const nx = dx / dist;
     const ny = dy / dist;
 
-    const startX = s.x + nx * radius;
-    const startY = s.y + ny * radius;
-    const endX = t.x - nx * (radius + 4); 
-    const endY = t.y - ny * (radius + 4);
+    const startX = s.x + nx * sRadius;
+    const startY = s.y + ny * sRadius;
+    const endX = t.x - nx * (tRadius + 4);
+    const endY = t.y - ny * (tRadius + 4);
 
     return `M ${startX} ${startY} L ${endX} ${endY}`;
   }
@@ -73,14 +89,15 @@
       role="button"
       tabindex="0"
     />
-    <path 
+    <path
       d={pathStr}
       stroke={isSelected ? "var(--accent-color)" : "var(--canvas-edge)"}
-      stroke-width={isSelected ? "3" : "2"}
+      stroke-width={isSelected ? edgeWidth + 1.5 : edgeWidth}
       fill="none"
       marker-end="url(#arrowhead)"
       class="edge-path"
     />
+      {#if edge.label || edge.description}
       <!-- Background for text readability if label or description -->
       <rect
         x={(source.x + target.x) / 2 - 40}
@@ -91,6 +108,7 @@
         rx="4"
         class="edge-label-bg"
       />
+      {/if}
       {#if edge.label}
         <text 
           x={(source.x + target.x) / 2} 

@@ -81,33 +81,35 @@ function hslToHex(h, s, l) {
   return '#' + toHex(r) + toHex(g) + toHex(b);
 }
 
-// Get a color for a node by index
-export function getNodeColor(index, totalNodes) {
-  let cmapName;
-  currentCmap.subscribe(c => cmapName = c)();
+// Get swatch color for a specific palette by name (for palette preview)
+export function getSwatchColor(cmapName, index) {
+  const cmap = colormaps[cmapName] || colormaps.default;
+  return cmap[Math.min(index, cmap.length - 1)];
+}
 
+// Get a color for a node based on its degree (number of connections)
+// Pass cmapName explicitly so Svelte reactivity works via $currentCmap
+export function getNodeColorByDegree(degree, maxDegree, cmapName) {
   const cmap = colormaps[cmapName] || colormaps.default;
 
-  // If totalNodes <= 5, use base colors directly (0-indexed)
-  if (totalNodes <= 5) {
-    return cmap[Math.min(index, cmap.length - 1)];
-  }
+  if (maxDegree === 0) return cmap[0];
 
-  // If totalNodes > 5, dynamically generate colors by interpolation
-  // Map node index to a position in [0, cmap.length)
-  const position = (index / totalNodes) * cmap.length;
+  // Normalize degree to [0, 1]
+  const t = degree / maxDegree;
+
+  // Map t across the full colormap range
+  const position = t * (cmap.length - 1);
   const lowerIdx = Math.floor(position);
   const upperIdx = Math.ceil(position);
   const fraction = position - lowerIdx;
 
-  const lowerColor = cmap[Math.min(lowerIdx, cmap.length - 1)];
+  const lowerColor = cmap[lowerIdx];
   const upperColor = cmap[Math.min(upperIdx, cmap.length - 1)];
 
-  if (lowerIdx === upperIdx) {
+  if (lowerIdx === upperIdx || fraction === 0) {
     return lowerColor;
   }
 
-  // Interpolate between lower and upper color in HSL space
   const hsl1 = hexToHsl(lowerColor);
   const hsl2 = hexToHsl(upperColor);
 

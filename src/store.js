@@ -1,4 +1,5 @@
 import { writable } from 'svelte/store';
+import { currentCmap, setCmap } from './colormap-store.js';
 
 // Retrieve stored data if available
 const storedNodes = typeof localStorage !== 'undefined' ? localStorage.getItem('graph-nodes') : null;
@@ -23,9 +24,9 @@ edges.subscribe(value => {
 // Generate a simple unique ID
 export const generateId = () => Math.random().toString(36).substr(2, 9);
 
-export const addNode = (x, y, label, description = '', color = '#3b82f6') => {
+export const addNode = (x, y, label, description = '') => {
   const newId = generateId();
-  nodes.update(ns => [...ns, { id: newId, x, y, label, description, color }]);
+  nodes.update(ns => [...ns, { id: newId, x, y, label, description }]);
   return newId;
 };
 
@@ -65,13 +66,15 @@ export const removeNode = (id) => {
 };
 
 export const exportData = () => {
-  let currentNodes, currentEdges;
+  let currentNodes, currentEdges, cmapName;
   nodes.subscribe(n => currentNodes = n)();
   edges.subscribe(e => currentEdges = e)();
-  
+  currentCmap.subscribe(c => cmapName = c)();
+
   const data = {
     nodes: currentNodes,
-    edges: currentEdges
+    edges: currentEdges,
+    palette: cmapName
   };
   
   const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
@@ -100,6 +103,9 @@ export const importData = (file) => {
         }
         if (data.edges && Array.isArray(data.edges)) {
           edges.set(data.edges);
+        }
+        if (data.palette) {
+          setCmap(data.palette);
         }
         resolve(true);
       } catch (err) {
