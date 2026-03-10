@@ -1,16 +1,36 @@
 <script>
   import { selectedNodeId, popupState } from '../ui-store.js';
+  import { removeNode } from '../store.js';
   export let node;
   export let onMouseDown;
 
   $: isSelected = $selectedNodeId === node.id;
+  $: displayDesc = node.description ? (node.description.includes('\n') || node.description.length > 20 ? node.description.split('\n')[0].substring(0, 20) + '...' : node.description) : '';
 
   function handleAddRelation() {
     popupState.set({
       type: 'ADD_RELATION',
       x: node.x + 40,
       y: node.y - 40,
-      sourceNodeId: node.id
+      sourceNodeId: node.id,
+      editTargetId: null
+    });
+  }
+
+  function handleDoubleClick(e) {
+    // We want the popup to appear near the node.
+    // Let's get the absolute screen coordinates so the popup, which is absolutely positioned
+    // over the canvas wrapper, appears in the right place.
+    const rect = e.target.closest('svg').getBoundingClientRect();
+    const popupX = node.x + rect.left + 40;
+    const popupY = node.y + rect.top;
+
+    popupState.set({
+      type: 'EDIT_NODE',
+      x: popupX,
+      y: popupY,
+      sourceNodeId: null,
+      editTargetId: node.id
     });
   }
 </script>
@@ -21,6 +41,7 @@
   tabindex="0"
   transform="translate({node.x}, {node.y})"
   on:mousedown|stopPropagation={onMouseDown}
+  on:dblclick|stopPropagation={handleDoubleClick}
 >
   <circle
     r="24"
@@ -37,6 +58,16 @@
   >
     {node.label}
   </text>
+  {#if node.description}
+    <text 
+      y="58" 
+      text-anchor="middle" 
+      fill="var(--canvas-edge)"
+      class="node-description"
+    >
+      {displayDesc}
+    </text>
+  {/if}
   
   {#if isSelected}
     <!-- Small plus button to add relation -->
@@ -44,6 +75,13 @@
     <g class="action-btn" transform="translate(20, -20)" on:mousedown|stopPropagation={handleAddRelation}>
       <circle r="12" fill="var(--primary-color)" />
       <path d="M-5,0 H5 M0,-5 V5" stroke="white" stroke-width="2" />
+    </g>
+
+    <!-- Small trash/delete button to remove node -->
+    <!-- svelte-ignore a11y-no-static-element-interactions -->
+    <g class="action-btn delete-node-btn" transform="translate(-20, -20)" on:mousedown|stopPropagation={() => removeNode(node.id)}>
+      <circle r="12" fill="var(--danger-color)" />
+      <path d="M-3 -3 L3 3 M3 -3 L-3 3" stroke="white" stroke-width="2" stroke-linecap="round" />
     </g>
   {/if}
 </g>
@@ -60,8 +98,8 @@
     cursor: grabbing;
   }
   .node-circle {
-    transition: stroke 0.2s, stroke-width 0.2s, fill 0.2s;
-    filter: drop-shadow(0 4px 6px rgba(0,0,0,0.3));
+    transition: stroke 0.2s, stroke-width 0.2s, fill 0.2s, filter 0.2s;
+    filter: var(--node-shadow);
   }
   .node-group:hover .node-circle {
     filter: drop-shadow(0 0 10px rgba(59, 130, 246, 0.4));
@@ -70,7 +108,15 @@
     font-size: 14px;
     font-weight: 500;
     pointer-events: none;
-    text-shadow: 0 1px 3px rgba(0,0,0,0.8);
+    text-shadow: var(--text-shadow);
+    transition: fill 0.3s ease;
+  }
+  .node-description {
+    font-size: 11px;
+    font-style: italic;
+    pointer-events: none;
+    text-shadow: var(--text-shadow);
+    transition: fill 0.3s ease;
   }
   .action-btn {
     cursor: pointer;

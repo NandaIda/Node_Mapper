@@ -1,6 +1,6 @@
 <script>
   import { nodes, edges, updateNodePosition } from '../store.js';
-  import { popupState, selectedNodeId } from '../ui-store.js';
+  import { popupState, selectedNodeId, selectedEdgeId } from '../ui-store.js';
   import Node from './Node.svelte';
   import Edge from './Edge.svelte';
 
@@ -18,16 +18,18 @@
       type: 'ADD_NODE',
       x,
       y,
-      sourceNodeId: null
+      sourceNodeId: null,
+      editTargetId: null
     });
   }
 
   function handleCanvasClick(e) {
     if (e.target === svg) {
       selectedNodeId.set(null);
+      selectedEdgeId.set(null);
       // Also close popup if open
       if ($popupState.type) {
-        popupState.set({ type: null, x: 0, y: 0, sourceNodeId: null });
+        popupState.set({ type: null, x: 0, y: 0, sourceNodeId: null, editTargetId: null });
       }
     }
   }
@@ -36,6 +38,7 @@
     isDraggingNode = true;
     draggedNodeId = id;
     selectedNodeId.set(id);
+    selectedEdgeId.set(null);
   }
 
   function handleMouseMove(e) {
@@ -66,7 +69,7 @@
 >
   <defs>
     <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
-      <polygon points="0 0, 10 3.5, 0 7" fill="rgba(255, 255, 255, 0.4)" />
+      <polygon points="0 0, 10 3.5, 0 7" fill="var(--canvas-edge)" />
     </marker>
   </defs>
 
