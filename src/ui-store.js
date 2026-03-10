@@ -11,6 +11,9 @@ export const popupState = writable({
 export const selectedNodeId = writable(null);
 export const selectedEdgeId = writable(null);
 
+// Constellation animation mode
+export const isAnimating = writable(false);
+
 // Viewport state for pan/zoom
 const storedViewBox = typeof localStorage !== 'undefined' ? localStorage.getItem('viewport-viewBox') : null;
 const initialViewBox = storedViewBox ? JSON.parse(storedViewBox) : { x: 0, y: 0, width: 1000, height: 700 };

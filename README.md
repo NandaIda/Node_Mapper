@@ -1,21 +1,27 @@
-# Graph Plotter Node Relation
+# Graphn
 
-An interactive graph visualization tool for brainstorming and clustering ideas. Create nodes, connect them with directed edges, and let the visual hierarchy emerge automatically — the more connected a node is, the bigger, bolder, and more colorful it appears.
+<p align="center">
+  <img src="public/logo.svg" alt="Graphn Logo" width="128" height="128" />
+</p>
 
-Built with Svelte 5 and Vite.
+<p align="center">
+  <strong>Node Relation Mapper</strong> — brainstorm, cluster, and see what matters most.
+</p>
 
-![dark mode graph example](https://img.shields.io/badge/theme-dark%20%2F%20light-blueviolet)
+---
+
+An interactive graph visualization tool where importance emerges naturally from connections. Create nodes, connect them with directed edges, and the visual hierarchy builds itself — bigger nodes, bolder colors, thicker edges for what's most connected.
 
 ## Features
 
-- **Automatic visual importance** — Node size, color intensity, label size, and edge thickness all scale with the number of connections. No manual styling needed.
-- **Color palettes** — 5 built-in colormaps (Default, Ocean, Warm, Pastel, Neon) that map connection count to color, like matplotlib colormaps.
-- **Infinite canvas** — Pan (middle-click drag) and zoom (scroll wheel) with no boundaries.
-- **Graph statistics** — Bottom-left stats panel showing node/edge counts, most connected nodes, and degree breakdown.
-- **Export / Import** — Save and load workspaces as JSON files. Palette preference is saved with the export.
-- **Dark / Light theme** — Toggle with the theme button. Preference persists across sessions.
-- **Quick node creation** — Double-click canvas to create a node and optionally connect it to existing nodes in the same form.
-- **Edge management** — Select a node and click `+` to add a relation. Double-click an edge to edit its label/description.
+- **Automatic visual importance** — Node size, color, label size, glow intensity, and edge thickness all scale with connection count. No manual styling needed.
+- **Color palettes** — 5 colormaps (Default, Ocean, Warm, Pastel, Neon) that map degree to color like matplotlib.
+- **Constellation mode** — Ambient animation with gentle node vibration, pulsing glow, and looping background music. Three tracks included.
+- **Infinite canvas** — Pan and zoom with no boundaries. Dot grid background.
+- **Graph statistics** — Live stats panel showing node/edge counts, most connected nodes, and degree breakdown.
+- **Export / Import** — Save and load workspaces as JSON. Palette and preferences included.
+- **Dark / Light theme** — Observatory-inspired dark theme by default.
+- **Help & Credits** — Built-in dialog with keyboard shortcuts, features, and music credits.
 
 ## Getting Started
 
@@ -34,13 +40,16 @@ Open `http://localhost:5173` in your browser.
 | Move node | Drag it |
 | Select node | Click it |
 | Edit node | Double-click it |
-| Delete node | Select → click X button |
-| Add relation | Select node → click + button |
+| Delete node | Select, click X button |
+| Add relation | Select node, click + button |
 | Edit relation | Double-click the edge |
-| Delete relation | Click edge → click X button |
-| Pan canvas | Middle-click drag or drag empty area |
+| Delete relation | Click edge, click X button |
+| Pan canvas | Drag empty area or middle-click drag |
 | Zoom | Scroll wheel |
-| Fit all nodes | Click Fit button |
+| Fit all nodes | Fit button in toolbar |
+| Constellation mode | Play button in toolbar |
+| Switch music | Music note button next to play |
+| Switch palette | Color dots button in toolbar |
 
 ## Build
 
@@ -53,8 +62,18 @@ npm run preview   # Preview the production build
 
 - [Svelte 5](https://svelte.dev/) — Reactive UI framework
 - [Vite](https://vitejs.dev/) — Build tool with HMR
-- [Lucide Svelte](https://lucide.dev/) — Icon library
 - SVG-based rendering with viewBox pan/zoom
+- DM Sans + JetBrains Mono typography
+
+## Music Credits
+
+All tracks from [pixabay.com](https://pixabay.com) (free license):
+
+| Track | Author |
+|---|---|
+| Space Ambient Cinematic | Delosound |
+| Meditation | Prettyjohn1 |
+| Ambient Space Background | Universfield |
 
 ## Recommended IDE
 

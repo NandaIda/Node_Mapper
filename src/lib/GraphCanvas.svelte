@@ -1,9 +1,47 @@
 <script>
   import { onMount, onDestroy } from 'svelte';
   import { nodes, edges, updateNodePosition } from '../store.js';
-  import { popupState, selectedNodeId, selectedEdgeId, viewBox, zoom, panBy, zoomTo } from '../ui-store.js';
+  import { popupState, selectedNodeId, selectedEdgeId, viewBox, zoom, panBy, zoomTo, isAnimating } from '../ui-store.js';
   import Node from './Node.svelte';
   import Edge from './Edge.svelte';
+
+  // Constellation animation — purely visual offsets, never touches store
+  let animFrame;
+  let animTime = 0;
+  let animOffsets = {}; // { nodeId: { dx, dy } }
+
+  $: if ($isAnimating) {
+    animTime = 0;
+    startAnimation();
+  } else {
+    stopAnimation();
+  }
+
+  function startAnimation() {
+    if (animFrame) return;
+    const tick = () => {
+      animTime += 0.012;
+      const offsets = {};
+      $nodes.forEach((n, i) => {
+        const phase = i * 1.37;
+        offsets[n.id] = {
+          dx: Math.sin(animTime * 0.7 + phase) * 2.5 + Math.sin(animTime * 1.3 + phase * 0.5) * 1,
+          dy: Math.cos(animTime * 0.9 + phase * 0.8) * 2.5 + Math.cos(animTime * 0.5 + phase) * 1
+        };
+      });
+      animOffsets = offsets;
+      animFrame = requestAnimationFrame(tick);
+    };
+    animFrame = requestAnimationFrame(tick);
+  }
+
+  function stopAnimation() {
+    if (animFrame) {
+      cancelAnimationFrame(animFrame);
+      animFrame = null;
+    }
+    animOffsets = {};
+  }
 
   // Compute degree for each node
   $: degreeMap = (() => {
@@ -42,8 +80,6 @@
   function handleDoubleClick(e) {
     if (e.target !== svg) return;
     const svgCoords = clientToSvgCoords(e.clientX, e.clientY);
-
-    // Get screen coordinates for popup positioning
     const rect = svg.getBoundingClientRect();
     const screenX = e.clientX - rect.left;
     const screenY = e.clientY - rect.top;
@@ -63,7 +99,6 @@
     if (e.target === svg) {
       selectedNodeId.set(null);
       selectedEdgeId.set(null);
-      // Also close popup if open
       if ($popupState.type) {
         popupState.set({ type: null, x: 0, y: 0, sourceNodeId: null, editTargetId: null });
       }
@@ -79,8 +114,6 @@
 
   function handleMouseDown(e) {
     if (isDraggingNode) return;
-
-    // Middle mouse button or if clicking on empty canvas
     if (e.button === 1 || (e.button === 0 && e.target === svg)) {
       isPanning = true;
       panStartX = e.clientX;
@@ -97,12 +130,8 @@
     } else if (isPanning) {
       const deltaX = e.clientX - panStartX;
       const deltaY = e.clientY - panStartY;
-
-      // Convert screen delta to SVG space delta
-      // The delta needs to be scaled by the current zoom level
       const screenCTM = svg.getScreenCTM();
       const scale = screenCTM ? screenCTM.a : 1;
-
       const svgDeltaX = -deltaX / scale;
       const svgDeltaY = -deltaY / scale;
 
@@ -123,16 +152,12 @@
 
   function handleWheel(e) {
     e.preventDefault();
-
     if (!svg) return;
 
     const coords = clientToSvgCoords(e.clientX, e.clientY);
-
-    // Determine zoom direction
     const zoomFactor = e.deltaY > 0 ? 0.9 : 1.1;
     const newZoom = Math.max(0.1, Math.min(5, $zoom * zoomFactor));
 
-    // Calculate new viewBox to keep mouse position stable
     const oldViewBox = $viewBox;
     const scaleChange = newZoom / $zoom;
 
@@ -150,40 +175,28 @@
   }
 
   onMount(() => {
-    // Initialize viewBox based on container size
     if (svg && svg.parentElement) {
       const width = svg.clientWidth;
       const height = svg.clientHeight;
 
-      viewBox.set({
-        x: 0,
-        y: 0,
-        width: width,
-        height: height
-      });
+      viewBox.set({ x: 0, y: 0, width, height });
 
-      // Set up ResizeObserver to update viewBox on window resize
       resizeObserver = new ResizeObserver(() => {
         if (svg) {
-          const newWidth = svg.clientWidth;
-          const newHeight = svg.clientHeight;
-
           viewBox.update(vb => ({
             ...vb,
-            width: newWidth,
-            height: newHeight
+            width: svg.clientWidth,
+            height: svg.clientHeight
           }));
         }
       });
-
       resizeObserver.observe(svg);
     }
   });
 
   onDestroy(() => {
-    if (resizeObserver) {
-      resizeObserver.disconnect();
-    }
+    if (resizeObserver) resizeObserver.disconnect();
+    if (animFrame) cancelAnimationFrame(animFrame);
   });
 </script>
 
@@ -202,8 +215,8 @@
   on:wheel={handleWheel}
 >
   <defs>
-    <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
-      <polygon points="0 0, 10 3.5, 0 7" fill="var(--canvas-edge)" />
+    <marker id="arrowhead" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
+      <polygon points="0 0, 8 3, 0 6" fill="var(--canvas-edge)" />
     </marker>
   </defs>
 
@@ -221,6 +234,9 @@
         {node}
         degree={degreeMap[node.id] || 0}
         {maxDegree}
+        animating={$isAnimating}
+        offsetX={animOffsets[node.id]?.dx || 0}
+        offsetY={animOffsets[node.id]?.dy || 0}
         onMouseDown={(e) => handleNodeMouseDown(e, node.id)}
       />
     {/each}

@@ -1,63 +1,549 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
-  <defs>
-    <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#3b82f6"/>
-      <stop offset="100%" stop-color="#8b5cf6"/>
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   viewBox="0 0 512 512"
+   version="1.1"
+   id="svg146"
+   sodipodi:docname="logo.svg"
+   inkscape:version="1.2.2 (b0a8486541, 2022-12-01)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:xlink="http://www.w3.org/1999/xlink"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <sodipodi:namedview
+     id="namedview148"
+     pagecolor="#ffffff"
+     bordercolor="#000000"
+     borderopacity="0.25"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     showgrid="false"
+     inkscape:zoom="1.2471043"
+     inkscape:cx="167.58823"
+     inkscape:cy="323.54952"
+     inkscape:window-width="1920"
+     inkscape:window-height="1056"
+     inkscape:window-x="0"
+     inkscape:window-y="1080"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="g443" />
+  <defs
+     id="defs38">
+    <linearGradient
+       id="core"
+       x1="193.6"
+       y1="198.56"
+       x2="318.39999"
+       y2="273.44"
+       gradientUnits="userSpaceOnUse">
+      <stop
+         offset="0%"
+         stop-color="#06b6d4"
+         id="stop2" />
+      <stop
+         offset="50%"
+         stop-color="#a78bfa"
+         id="stop4" />
+      <stop
+         offset="100%"
+         stop-color="#f472b6"
+         id="stop6" />
     </linearGradient>
-    <linearGradient id="grad2" x1="100%" y1="0%" x2="0%" y2="100%">
-      <stop offset="0%" stop-color="#3b82f6" stop-opacity="0.5"/>
-      <stop offset="100%" stop-color="#8b5cf6" stop-opacity="0.5"/>
+    <linearGradient
+       id="mid"
+       x1="0%"
+       y1="0%"
+       x2="100%"
+       y2="100%">
+      <stop
+         offset="0%"
+         stop-color="#06b6d4"
+         stop-opacity="0.6"
+         id="stop9" />
+      <stop
+         offset="100%"
+         stop-color="#a78bfa"
+         stop-opacity="0.6"
+         id="stop11" />
     </linearGradient>
-    <linearGradient id="edgeGrad" x1="0%" y1="0%" x2="100%" y2="0%">
-      <stop offset="0%" stop-color="#3b82f6" stop-opacity="0.6"/>
-      <stop offset="100%" stop-color="#8b5cf6" stop-opacity="0.6"/>
+    <linearGradient
+       id="faint"
+       x1="0%"
+       y1="0%"
+       x2="100%"
+       y2="100%">
+      <stop
+         offset="0%"
+         stop-color="#a78bfa"
+         stop-opacity="0.3"
+         id="stop14" />
+      <stop
+         offset="100%"
+         stop-color="#f472b6"
+         stop-opacity="0.3"
+         id="stop16" />
     </linearGradient>
-    <!-- Glow filter for the central node -->
-    <filter id="glow">
-      <feGaussianBlur stdDeviation="8" result="blur"/>
-      <feComposite in="SourceGraphic" in2="blur" operator="over"/>
+    <radialGradient
+       id="glow"
+       cx="244.08642"
+       cy="230.73795"
+       r="188.78559"
+       gradientTransform="matrix(0.8410521,0,0,0.79184944,63.320153,68.199024)"
+       fx="244.08642"
+       fy="230.73795"
+       gradientUnits="userSpaceOnUse">
+      <stop
+         offset="0%"
+         stop-color="#06b6d4"
+         stop-opacity="0.15"
+         id="stop19" />
+      <stop
+         offset="100%"
+         stop-color="#06b6d4"
+         stop-opacity="0"
+         id="stop21" />
+    </radialGradient>
+    <filter
+       id="softglow"
+       x="-0.15"
+       y="-0.15"
+       width="1.3"
+       height="1.3">
+      <feGaussianBlur
+         stdDeviation="6"
+         result="blur"
+         id="feGaussianBlur24" />
+      <feComposite
+         in="SourceGraphic"
+         in2="blur"
+         operator="over"
+         id="feComposite26" />
     </filter>
+    <filter
+       id="edgeglow"
+       x="-0.018996535"
+       y="-0.015159995"
+       width="1.0380006"
+       height="1.0317071">
+      <feGaussianBlur
+         in="SourceGraphic"
+         stdDeviation="2"
+         result="blur"
+         id="feGaussianBlur29" />
+      <feMerge
+         id="feMerge35">
+        <feMergeNode
+           in="blur"
+           id="feMergeNode31" />
+        <feMergeNode
+           in="SourceGraphic"
+           id="feMergeNode33" />
+      </feMerge>
+    </filter>
+    <linearGradient
+       id="mid-3"
+       x1="370"
+       y1="112"
+       x2="422"
+       y2="164"
+       gradientUnits="userSpaceOnUse"
+       gradientTransform="translate(-140.35795,-44.854793)">
+      <stop
+         offset="0%"
+         stop-color="#06b6d4"
+         stop-opacity="0.6"
+         id="stop9-6" />
+      <stop
+         offset="100%"
+         stop-color="#a78bfa"
+         stop-opacity="0.6"
+         id="stop11-7" />
+    </linearGradient>
+    <linearGradient
+       inkscape:collect="always"
+       xlink:href="#mid"
+       id="linearGradient2704"
+       x1="100"
+       y1="120"
+       x2="156"
+       y2="176"
+       gradientUnits="userSpaceOnUse" />
+    <linearGradient
+       inkscape:collect="always"
+       xlink:href="#mid"
+       id="linearGradient2706"
+       x1="370"
+       y1="112"
+       x2="422"
+       y2="164"
+       gradientUnits="userSpaceOnUse" />
+    <linearGradient
+       inkscape:collect="always"
+       xlink:href="#mid"
+       id="linearGradient2708"
+       x1="88"
+       y1="302"
+       x2="136"
+       y2="350"
+       gradientUnits="userSpaceOnUse" />
+    <linearGradient
+       inkscape:collect="always"
+       xlink:href="#mid"
+       id="linearGradient2710"
+       x1="380"
+       y1="286"
+       x2="428"
+       y2="334"
+       gradientUnits="userSpaceOnUse" />
+    <linearGradient
+       inkscape:collect="always"
+       xlink:href="#faint"
+       id="linearGradient2712"
+       x1="178"
+       y1="386"
+       x2="214"
+       y2="422"
+       gradientUnits="userSpaceOnUse" />
+    <linearGradient
+       inkscape:collect="always"
+       xlink:href="#faint"
+       id="linearGradient2714"
+       x1="328"
+       y1="394"
+       x2="364"
+       y2="430"
+       gradientUnits="userSpaceOnUse" />
   </defs>
-
-  <!-- Background rounded square -->
-  <rect width="512" height="512" rx="96" fill="#0f172a"/>
-
-  <!-- Edges — drawn first, behind nodes -->
-  <!-- Central hub (256,240) to satellites -->
-  <line x1="256" y1="240" x2="130" y2="150" stroke="url(#edgeGrad)" stroke-width="4" stroke-linecap="round"/>
-  <line x1="256" y1="240" x2="390" y2="140" stroke="url(#edgeGrad)" stroke-width="4" stroke-linecap="round"/>
-  <line x1="256" y1="240" x2="120" y2="320" stroke="url(#edgeGrad)" stroke-width="4" stroke-linecap="round"/>
-  <line x1="256" y1="240" x2="400" y2="300" stroke="url(#edgeGrad)" stroke-width="4" stroke-linecap="round"/>
-  <line x1="256" y1="240" x2="200" y2="400" stroke="url(#edgeGrad)" stroke-width="4" stroke-linecap="round"/>
-  <line x1="256" y1="240" x2="340" y2="410" stroke="url(#edgeGrad)" stroke-width="3.5" stroke-linecap="round"/>
-
-  <!-- Secondary edges — between satellites -->
-  <line x1="130" y1="150" x2="120" y2="320" stroke="url(#edgeGrad)" stroke-width="2.5" stroke-linecap="round"/>
-  <line x1="390" y1="140" x2="400" y2="300" stroke="url(#edgeGrad)" stroke-width="2.5" stroke-linecap="round"/>
-  <line x1="200" y1="400" x2="120" y2="320" stroke="url(#edgeGrad)" stroke-width="2" stroke-linecap="round"/>
-  <line x1="340" y1="410" x2="400" y2="300" stroke="url(#edgeGrad)" stroke-width="2" stroke-linecap="round"/>
-
-  <!-- Leaf edges -->
-  <line x1="130" y1="150" x2="60" y2="80" stroke="url(#edgeGrad)" stroke-width="1.5" stroke-linecap="round"/>
-  <line x1="390" y1="140" x2="450" y2="70" stroke="url(#edgeGrad)" stroke-width="1.5" stroke-linecap="round"/>
-  <line x1="120" y1="320" x2="50" y2="400" stroke="url(#edgeGrad)" stroke-width="1.5" stroke-linecap="round"/>
-
-  <!-- Central node — largest, most connected, brightest -->
-  <circle cx="256" cy="240" r="52" fill="url(#grad)" filter="url(#glow)" opacity="0.95"/>
-  <circle cx="256" cy="240" r="52" fill="none" stroke="white" stroke-width="2" opacity="0.2"/>
-
-  <!-- Medium satellites — 3-4 connections each -->
-  <circle cx="130" cy="150" r="30" fill="url(#grad)" opacity="0.7"/>
-  <circle cx="390" cy="140" r="28" fill="url(#grad)" opacity="0.65"/>
-  <circle cx="120" cy="320" r="26" fill="url(#grad)" opacity="0.6"/>
-  <circle cx="400" cy="300" r="26" fill="url(#grad)" opacity="0.6"/>
-
-  <!-- Smaller nodes — 2 connections -->
-  <circle cx="200" cy="400" r="20" fill="url(#grad2)" opacity="0.8"/>
-  <circle cx="340" cy="410" r="20" fill="url(#grad2)" opacity="0.8"/>
-
-  <!-- Leaf nodes — 1 connection, smallest, faintest -->
-  <circle cx="60" cy="80" r="13" fill="url(#grad2)" opacity="0.7"/>
-  <circle cx="450" cy="70" r="13" fill="url(#grad2)" opacity="0.7"/>
-  <circle cx="50" cy="400" r="12" fill="url(#grad2)" opacity="0.65"/>
+  <!-- Background -->
+  <!-- Ambient glow -->
+  <!-- Grid dots (star chart feel) -->
+  <!-- Edges — glowing lines -->
+  <!-- Central hub — largest -->
+  <!-- Medium satellites -->
+  <!-- Small nodes -->
+  <g
+     id="g443">
+    <g
+       id="g2702"
+       transform="matrix(1.2650961,0,0,1.2650961,-67.864591,-67.864591)">
+      <rect
+         width="403.82526"
+         height="403.82526"
+         rx="85.181892"
+         fill="#0a0e1a"
+         id="rect40"
+         x="54.087368"
+         y="54.087368"
+         style="stroke-width:0.788721" />
+      <ellipse
+         cx="268.60956"
+         cy="264.19672"
+         rx="176.42058"
+         ry="166.09973"
+         fill="url(#glow)"
+         id="ellipse42"
+         style="fill:url(#glow);stroke-width:0.81608" />
+      <g
+         opacity="0.08"
+         fill="#94a3b8"
+         id="g92">
+        <circle
+           cx="80"
+           cy="80"
+           r="1.5"
+           id="circle44" />
+        <circle
+           cx="160"
+           cy="80"
+           r="1.5"
+           id="circle46" />
+        <circle
+           cx="240"
+           cy="80"
+           r="1.5"
+           id="circle48" />
+        <circle
+           cx="320"
+           cy="80"
+           r="1.5"
+           id="circle50" />
+        <circle
+           cx="400"
+           cy="80"
+           r="1.5"
+           id="circle52" />
+        <circle
+           cx="80"
+           cy="160"
+           r="1.5"
+           id="circle54" />
+        <circle
+           cx="160"
+           cy="160"
+           r="1.5"
+           id="circle56" />
+        <circle
+           cx="240"
+           cy="160"
+           r="1.5"
+           id="circle58" />
+        <circle
+           cx="320"
+           cy="160"
+           r="1.5"
+           id="circle60" />
+        <circle
+           cx="400"
+           cy="160"
+           r="1.5"
+           id="circle62" />
+        <circle
+           cx="80"
+           cy="240"
+           r="1.5"
+           id="circle64" />
+        <circle
+           cx="160"
+           cy="240"
+           r="1.5"
+           id="circle66" />
+        <circle
+           cx="320"
+           cy="240"
+           r="1.5"
+           id="circle68" />
+        <circle
+           cx="400"
+           cy="240"
+           r="1.5"
+           id="circle70" />
+        <circle
+           cx="80"
+           cy="320"
+           r="1.5"
+           id="circle72" />
+        <circle
+           cx="160"
+           cy="320"
+           r="1.5"
+           id="circle74" />
+        <circle
+           cx="240"
+           cy="320"
+           r="1.5"
+           id="circle76" />
+        <circle
+           cx="320"
+           cy="320"
+           r="1.5"
+           id="circle78" />
+        <circle
+           cx="400"
+           cy="320"
+           r="1.5"
+           id="circle80" />
+        <circle
+           cx="80"
+           cy="400"
+           r="1.5"
+           id="circle82" />
+        <circle
+           cx="160"
+           cy="400"
+           r="1.5"
+           id="circle84" />
+        <circle
+           cx="240"
+           cy="400"
+           r="1.5"
+           id="circle86" />
+        <circle
+           cx="320"
+           cy="400"
+           r="1.5"
+           id="circle88" />
+        <circle
+           cx="400"
+           cy="400"
+           r="1.5"
+           id="circle90" />
+      </g>
+      <g
+         filter="url(#edgeglow)"
+         opacity="0.5"
+         id="g120">
+        <line
+           x1="256"
+           y1="236"
+           x2="128"
+           y2="148"
+           stroke="#06b6d4"
+           stroke-width="2.5"
+           id="line94" />
+        <line
+           x1="256"
+           y1="236"
+           x2="396"
+           y2="138"
+           stroke="#a78bfa"
+           stroke-width="2.5"
+           id="line96" />
+        <line
+           x1="256"
+           y1="236"
+           x2="112"
+           y2="326"
+           stroke="#06b6d4"
+           stroke-width="2.5"
+           id="line98" />
+        <line
+           x1="256"
+           y1="236"
+           x2="404"
+           y2="310"
+           stroke="#a78bfa"
+           stroke-width="2"
+           id="line100" />
+        <line
+           x1="256"
+           y1="236"
+           x2="196"
+           y2="404"
+           stroke="#f472b6"
+           stroke-width="2"
+           id="line102" />
+        <line
+           x1="256"
+           y1="236"
+           x2="346"
+           y2="412"
+           stroke="#f472b6"
+           stroke-width="2"
+           id="line104" />
+        <!-- Secondary -->
+        <line
+           x1="128"
+           y1="148"
+           x2="112"
+           y2="326"
+           stroke="#06b6d4"
+           stroke-width="1.5"
+           id="line106" />
+        <line
+           x1="396"
+           y1="138"
+           x2="404"
+           y2="310"
+           stroke="#a78bfa"
+           stroke-width="1.5"
+           id="line108" />
+        <line
+           x1="196"
+           y1="404"
+           x2="112"
+           y2="326"
+           stroke="#06b6d4"
+           stroke-width="1"
+           id="line110" />
+        <line
+           x1="346"
+           y1="412"
+           x2="404"
+           y2="310"
+           stroke="#a78bfa"
+           stroke-width="1"
+           id="line112" />
+        <!-- Leaf -->
+        <line
+           x1="253.82085"
+           y1="249.72575"
+           x2="255.65303"
+           y2="94.404648"
+           stroke="#06b6d4"
+           stroke-width="2.5"
+           id="line540" />
+      </g>
+      <circle
+         cx="256"
+         cy="236"
+         r="48"
+         fill="url(#core)"
+         filter="url(#softglow)"
+         id="circle122"
+         style="fill:url(#core)" />
+      <circle
+         cx="256"
+         cy="236"
+         fill="none"
+         stroke="#ffffff"
+         stroke-width="1.5"
+         opacity="0.15"
+         id="circle124"
+         r="48" />
+      <circle
+         cx="128"
+         cy="148"
+         fill="url(#mid)"
+         id="circle126"
+         r="28"
+         style="fill:url(#linearGradient2704)" />
+      <circle
+         cx="128"
+         cy="148"
+         fill="none"
+         stroke="#ffffff"
+         stroke-width="1"
+         opacity="0.1"
+         id="circle128"
+         r="28" />
+      <circle
+         cx="396"
+         cy="138"
+         fill="url(#mid)"
+         id="circle130"
+         r="26"
+         style="fill:url(#linearGradient2706)" />
+      <circle
+         cx="255.64206"
+         cy="93.145203"
+         fill="url(#mid)"
+         id="circle130-5"
+         style="fill:url(#mid-3)"
+         r="26" />
+      <circle
+         cx="112"
+         cy="326"
+         fill="url(#mid)"
+         id="circle132"
+         r="24"
+         style="fill:url(#linearGradient2708)" />
+      <circle
+         cx="404"
+         cy="310"
+         fill="url(#mid)"
+         id="circle134"
+         r="24"
+         style="fill:url(#linearGradient2710)" />
+      <circle
+         cx="196"
+         cy="404"
+         fill="url(#faint)"
+         id="circle136"
+         r="18"
+         style="fill:url(#linearGradient2712)" />
+      <circle
+         cx="346"
+         cy="412"
+         fill="url(#faint)"
+         id="circle138"
+         r="18"
+         inkscape:export-filename="circle138.svg"
+         inkscape:export-xdpi="96"
+         inkscape:export-ydpi="96"
+         style="fill:url(#linearGradient2714)" />
+    </g>
+  </g>
+  <!-- Leaf nodes -->
 </svg>

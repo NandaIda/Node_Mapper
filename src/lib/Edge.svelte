@@ -4,7 +4,7 @@
   export let edge;
   export let degreeMap = {};
   export let maxDegree = 0;
-  
+
   $: source = $nodes.find(n => n.id === edge.sourceId);
   $: target = $nodes.find(n => n.id === edge.targetId);
   $: isSelected = $selectedEdgeId === edge.id;
@@ -16,13 +16,9 @@
   }
 
   function handleDoubleClick(e) {
-    // The popups are positioned relative to the `.canvas-wrapper` which is the offset parent.
-    // Currently, e.clientX/Y are viewport coordinates. Let's make it relative to the SVG container.
     const svgEl = e.target.closest('svg');
     if (!svgEl) return;
     const rect = svgEl.getBoundingClientRect();
-    
-    // We want the popup to spawn near the midpoint of the node, similar to where click happened 
     const relX = e.clientX - rect.left;
     const relY = e.clientY - rect.top;
 
@@ -41,7 +37,8 @@
   $: sourceDeg = source ? (degreeMap[source.id] || 0) : 0;
   $: targetDeg = target ? (degreeMap[target.id] || 0) : 0;
   $: edgeImportance = maxDegree > 0 ? (sourceDeg + targetDeg) / (2 * maxDegree) : 0;
-  $: edgeWidth = 1.5 + edgeImportance * 3;
+  $: edgeWidth = 1 + edgeImportance * 2.5;
+  $: edgeOpacity = 0.25 + edgeImportance * 0.45;
 
   // Dynamic radius per node based on degree
   function nodeRadius(nodeId) {
@@ -50,7 +47,6 @@
     return 18 + t * 22;
   }
 
-  // Calculate coordinates to draw arrow boundary to boundary
   $: pathStr = source && target ? calculatePath(source, target) : '';
 
   function calculatePath(s, t) {
@@ -75,9 +71,8 @@
 
 {#if source && target}
   <g class="edge-group">
-    <!-- Thicker transparent path to make hovering easier -->
     <!-- svelte-ignore a11y-no-static-element-interactions -->
-    <path 
+    <path
       d={pathStr}
       stroke="transparent"
       stroke-width="20"
@@ -93,98 +88,99 @@
       d={pathStr}
       stroke={isSelected ? "var(--accent-color)" : "var(--canvas-edge)"}
       stroke-width={isSelected ? edgeWidth + 1.5 : edgeWidth}
+      stroke-opacity={isSelected ? 0.9 : edgeOpacity}
       fill="none"
       marker-end="url(#arrowhead)"
       class="edge-path"
     />
-      {#if edge.label || edge.description}
-      <!-- Background for text readability if label or description -->
+    {#if edge.label || edge.description}
       <rect
         x={(source.x + target.x) / 2 - 40}
-        y={(source.y + target.y) / 2 - 14}
+        y={(source.y + target.y) / 2 - 12}
         width="80"
-        height={edge.description ? "34" : "24"}
+        height={edge.description ? "30" : "22"}
         fill="var(--bg-color)"
-        rx="4"
+        fill-opacity="0.8"
+        rx="5"
         class="edge-label-bg"
       />
-      {/if}
-      {#if edge.label}
-        <text 
-          x={(source.x + target.x) / 2} 
-          y={(source.y + target.y) / 2 + (edge.description ? -2 : 4)}
-          text-anchor="middle"
-          fill="var(--text-color)"
-          class="edge-label"
-        >
-          {edge.label}
-        </text>
-      {/if}
-      {#if edge.description}
-        <text 
-          x={(source.x + target.x) / 2} 
-          y={(source.y + target.y) / 2 + 10}
-          text-anchor="middle"
-          fill="var(--canvas-edge)"
-          class="edge-description"
-        >
-          {displayDesc}
-        </text>
-      {/if}
-      {#if isSelected}
-        <g 
-          class="delete-btn" 
-          transform="translate({(source.x + target.x) / 2}, {(source.y + target.y) / 2 + (edge.label ? -16 : 0)})"
-          on:click|stopPropagation={() => removeEdge(edge.id)}
-          on:keydown|stopPropagation={(e) => (e.key === 'Enter' || e.key === ' ') && removeEdge(edge.id)}
-          role="button"
-          tabindex="0"
-        >
-          <circle r="12" fill="var(--danger-color)" />
-          <!-- The X icon inside the circle -->
-          <path d="M-3 -3 L3 3 M3 -3 L-3 3" stroke="white" stroke-width="2" stroke-linecap="round" />
-        </g>
-      {/if}
+    {/if}
+    {#if edge.label}
+      <text
+        x={(source.x + target.x) / 2}
+        y={(source.y + target.y) / 2 + (edge.description ? -1 : 4)}
+        text-anchor="middle"
+        fill="var(--text-color)"
+        class="edge-label"
+      >
+        {edge.label}
+      </text>
+    {/if}
+    {#if edge.description}
+      <text
+        x={(source.x + target.x) / 2}
+        y={(source.y + target.y) / 2 + 11}
+        text-anchor="middle"
+        fill="var(--text-muted)"
+        class="edge-description"
+      >
+        {displayDesc}
+      </text>
+    {/if}
+    {#if isSelected}
+      <g
+        class="delete-btn"
+        transform="translate({(source.x + target.x) / 2}, {(source.y + target.y) / 2 + (edge.label ? -16 : 0)})"
+        on:click|stopPropagation={() => removeEdge(edge.id)}
+        on:keydown|stopPropagation={(e) => (e.key === 'Enter' || e.key === ' ') && removeEdge(edge.id)}
+        role="button"
+        tabindex="0"
+      >
+        <circle r="11" fill="var(--danger-color)" opacity="0.9"/>
+        <path d="M-3 -3 L3 3 M3 -3 L-3 3" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
+      </g>
+    {/if}
   </g>
 {/if}
 
 <style>
   .edge-group .edge-path {
-    transition: stroke-width 0.2s, stroke 0.3s ease;
+    transition: stroke-width 0.25s, stroke 0.25s, stroke-opacity 0.25s;
   }
   .edge-hover-area {
-    pointer-events: stroke; /* Ensure this thick transparent path triggers hover */
+    pointer-events: stroke;
   }
   .edge-group:hover .edge-path {
-    stroke-width: 3;
     stroke: var(--primary-color);
+    stroke-opacity: 0.6;
   }
   .edge-label-bg {
     pointer-events: none;
-    opacity: 0.8;
-    transition: fill 0.3s ease;
+    transition: fill 0.3s;
   }
   .edge-label {
-    font-size: 11px;
+    font-family: var(--font-body, 'DM Sans', system-ui, sans-serif);
+    font-size: 10px;
     font-weight: 500;
     pointer-events: none;
-    transition: fill 0.3s ease;
+    transition: fill 0.3s;
   }
   .edge-description {
-    font-size: 9px;
-    font-style: italic;
+    font-family: var(--font-mono, 'JetBrains Mono', monospace);
+    font-size: 8px;
+    font-style: normal;
     pointer-events: none;
-    transition: fill 0.3s ease;
+    transition: fill 0.3s;
   }
   .delete-btn {
     cursor: pointer;
-    transition: opacity 0.2s; /* Removed transform transition */
     pointer-events: auto;
   }
-  .delete-btn:hover circle {
-    fill: #ef4444; /* darker red or just stay same */
-  }
   .delete-btn circle {
-    transition: fill 0.2s;
+    transition: fill 0.15s;
+    filter: drop-shadow(0 2px 6px rgba(0,0,0,0.4));
+  }
+  .delete-btn:hover circle {
+    fill: #ef4444;
   }
 </style>
