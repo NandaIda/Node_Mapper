@@ -50,10 +50,6 @@
   }
 
   function handleOpenNotes() {
-    const targetId = $popupState.editTargetId || $popupState.sourceNodeId;
-    // For ADD_NODE, we can't open a window yet because ID isn't generated until "Create"
-    // So we just keep nodeNotes in ADD_NODE popup.
-    // For EDIT_NODE, we open the window:
     if ($popupState.editTargetId) {
       openNote($popupState.editTargetId, $popupState.x + 20, $popupState.y + 20, 'edit');
       closePopup();
@@ -126,7 +122,7 @@
     <div class="popup-header">
       <span class="popup-tag">new node</span>
       <button class="close-btn" on:click={closePopup}>
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
       </button>
     </div>
     <div class="popup-body">
@@ -186,7 +182,7 @@
     <div class="popup-header">
       <span class="popup-tag">new relation</span>
       <button class="close-btn" on:click={closePopup}>
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
       </button>
     </div>
     <div class="popup-body">
@@ -221,7 +217,7 @@
     <div class="popup-header">
       <span class="popup-tag">edit node</span>
       <button class="close-btn" on:click={closePopup}>
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
       </button>
     </div>
     <div class="popup-body">
@@ -238,7 +234,7 @@
       ></textarea>
       <div class="popup-actions">
         <button class="secondary-btn" on:click={handleOpenNotes}>
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/></svg>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/></svg>
           Notes
         </button>
         <button class="primary-btn" on:click={handleEditNode}>Save</button>
@@ -256,7 +252,7 @@
     <div class="popup-header">
       <span class="popup-tag">edit relation</span>
       <button class="close-btn" on:click={closePopup}>
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
       </button>
     </div>
     <div class="popup-body">
@@ -284,7 +280,7 @@
     -webkit-backdrop-filter: blur(24px);
     border: 1px solid rgba(148, 163, 184, 0.06);
     border-radius: 14px;
-    width: 260px;
+    width: 280px;
     box-shadow:
       0 16px 48px rgba(0, 0, 0, 0.4),
       0 0 0 1px rgba(148, 163, 184, 0.03),
@@ -296,7 +292,7 @@
   }
 
   .popup-large {
-    width: 290px;
+    width: 320px;
   }
 
   @keyframes popup-enter {
@@ -342,13 +338,13 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 10px 14px;
+    padding: 12px 16px;
     border-bottom: 1px solid var(--border-color);
   }
 
   .popup-tag {
     font-family: var(--font-mono, 'JetBrains Mono', monospace);
-    font-size: 11px;
+    font-size: 12px;
     font-weight: 500;
     color: var(--primary-color);
     letter-spacing: 0.02em;
@@ -359,11 +355,11 @@
     border: none;
     color: var(--text-muted);
     cursor: pointer;
-    padding: 2px;
+    padding: 4px;
     display: flex;
     align-items: center;
     justify-content: center;
-    border-radius: 4px;
+    border-radius: 6px;
     transition: color 0.15s, background 0.15s;
   }
   .close-btn:hover {
@@ -372,20 +368,20 @@
   }
 
   .popup-body {
-    padding: 14px;
+    padding: 16px;
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    gap: 12px;
   }
 
   input, select, textarea {
     width: 100%;
-    padding: 9px 12px;
+    padding: 10px 14px;
     background: var(--input-bg);
     border: 1px solid var(--border-color);
     border-radius: 8px;
     color: var(--text-bright);
-    font-size: 13px;
+    font-size: 14px;
     font-family: var(--font-body, 'DM Sans', system-ui, sans-serif);
     box-sizing: border-box;
     transition: border-color 0.2s, background 0.2s, box-shadow 0.2s;
@@ -393,7 +389,7 @@
 
   textarea {
     resize: vertical;
-    min-height: 50px;
+    min-height: 60px;
     font-family: inherit;
   }
 
@@ -411,14 +407,14 @@
   .relations-section {
     display: flex;
     flex-direction: column;
-    gap: 6px;
+    gap: 8px;
     border-top: 1px solid var(--border-color);
-    padding-top: 10px;
+    padding-top: 12px;
   }
 
   .section-label {
     font-family: var(--font-mono, 'JetBrains Mono', monospace);
-    font-size: 10px;
+    font-size: 11px;
     font-weight: 500;
     text-transform: uppercase;
     letter-spacing: 0.08em;
@@ -426,19 +422,19 @@
   }
 
   .relations-list {
-    max-height: 140px;
+    max-height: 160px;
     overflow-y: auto;
     display: flex;
     flex-direction: column;
-    gap: 4px;
-    padding-right: 2px;
+    gap: 6px;
+    padding-right: 4px;
   }
 
   .relation-item {
     display: flex;
     flex-direction: column;
-    gap: 6px;
-    padding: 7px 8px;
+    gap: 8px;
+    padding: 8px 10px;
     border-radius: 8px;
     border: 1px solid transparent;
     transition: background 0.15s, border-color 0.15s;
@@ -452,38 +448,38 @@
   .checkbox-label {
     display: flex;
     align-items: center;
-    gap: 8px;
-    font-size: 12px;
+    gap: 10px;
+    font-size: 14px;
     cursor: pointer;
     user-select: none;
     color: var(--text-color);
   }
 
   .checkbox-label input[type="checkbox"] {
-    width: 14px;
-    height: 14px;
+    width: 16px;
+    height: 16px;
     cursor: pointer;
     accent-color: var(--primary-color);
   }
 
   .relation-input {
-    font-size: 11px;
-    padding: 6px 8px;
-    margin-left: 22px;
-    width: calc(100% - 22px);
+    font-size: 12px;
+    padding: 8px 10px;
+    margin-left: 26px;
+    width: calc(100% - 26px);
   }
 
   .primary-btn {
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 8px;
+    gap: 10px;
     background: var(--primary-color);
     color: white;
     border: none;
-    padding: 9px 0;
+    padding: 10px 0;
     border-radius: 8px;
-    font-size: 13px;
+    font-size: 14px;
     font-weight: 500;
     font-family: var(--font-body, 'DM Sans', system-ui, sans-serif);
     cursor: pointer;
@@ -508,35 +504,35 @@
 
   .primary-btn kbd {
     font-family: var(--font-mono, 'JetBrains Mono', monospace);
-    font-size: 10px;
-    padding: 1px 5px;
+    font-size: 11px;
+    padding: 2px 6px;
     background: rgba(255, 255, 255, 0.15);
     border-radius: 4px;
     font-weight: 400;
   }
 
   /* Scrollbar */
-  .relations-list::-webkit-scrollbar { width: 4px; }
+  .relations-list::-webkit-scrollbar { width: 5px; }
   .relations-list::-webkit-scrollbar-track { background: transparent; }
   .relations-list::-webkit-scrollbar-thumb { background: var(--border-color); border-radius: 4px; }
 
   /* New note styles */
   .popup-actions {
     display: flex;
-    gap: 8px;
+    gap: 10px;
   }
 
   .secondary-btn {
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 6px;
+    gap: 8px;
     background: rgba(148, 163, 184, 0.08);
     color: var(--text-color);
     border: 1px solid var(--border-color);
-    padding: 9px 12px;
+    padding: 10px 14px;
     border-radius: 8px;
-    font-size: 13px;
+    font-size: 14px;
     font-weight: 500;
     font-family: var(--font-body, 'DM Sans', system-ui, sans-serif);
     cursor: pointer;

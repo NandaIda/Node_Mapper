@@ -59,8 +59,8 @@
       });
     } else if (isResizing) {
       updateNoteWindow(windowState.nodeId, {
-        width: Math.max(260, resizeStartSize.w + (e.clientX - resizeStartPos.x)),
-        height: Math.max(200, resizeStartSize.h + (e.clientY - resizeStartPos.y))
+        width: Math.max(280, resizeStartSize.w + (e.clientX - resizeStartPos.x)),
+        height: Math.max(220, resizeStartSize.h + (e.clientY - resizeStartPos.y))
       });
     }
   }
@@ -122,10 +122,10 @@
     </div>
     <div class="window-controls">
       <button class="win-btn pin-btn" class:active={windowState.isPinned} on:click|stopPropagation={togglePin} title={windowState.isPinned ? 'Unpin' : 'Pin Window'}>
-        <svg width="12" height="12" viewBox="0 0 24 24" fill={windowState.isPinned ? "currentColor" : "none"} stroke="currentColor" stroke-width="2.5"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill={windowState.isPinned ? "currentColor" : "none"} stroke="currentColor" stroke-width="2.5"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
       </button>
       <button class="win-btn close-btn" on:click|stopPropagation={handleCloseRequest}>
-        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 6L6 18M6 6l12 12"/></svg>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 6L6 18M6 6l12 12"/></svg>
       </button>
     </div>
   </div>
@@ -194,7 +194,7 @@
   }
 
   .window-header {
-    padding: 10px 14px;
+    padding: 12px 16px;
     background: rgba(255, 255, 255, 0.02);
     border-bottom: 1px solid var(--border-color);
     cursor: move;
@@ -206,8 +206,8 @@
   .window-title {
     display: flex;
     align-items: center;
-    gap: 6px;
-    font-size: 11px;
+    gap: 8px;
+    font-size: 13px;
     font-family: var(--font-mono);
   }
 
@@ -224,13 +224,13 @@
 
   .window-controls {
     display: flex;
-    gap: 4px;
+    gap: 6px;
   }
 
   .win-btn {
-    width: 24px;
-    height: 24px;
-    border-radius: 6px;
+    width: 28px;
+    height: 28px;
+    border-radius: 8px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -252,9 +252,9 @@
   }
 
   .window-tabs {
-    padding: 6px 14px;
+    padding: 8px 16px;
     display: flex;
-    gap: 12px;
+    gap: 16px;
     border-bottom: 1px solid var(--border-color);
   }
 
@@ -262,12 +262,12 @@
     background: transparent;
     border: none;
     font-family: var(--font-mono);
-    font-size: 10px;
+    font-size: 12px;
     font-weight: 600;
     text-transform: uppercase;
     color: var(--text-muted);
     cursor: pointer;
-    padding-bottom: 4px;
+    padding-bottom: 6px;
     border-bottom: 2px solid transparent;
     transition: all 0.15s;
   }
@@ -294,27 +294,27 @@
     width: 100%;
     background: transparent;
     border: none;
-    padding: 14px;
+    padding: 16px;
     color: var(--text-color);
     font-family: var(--font-mono);
-    font-size: 12px;
-    line-height: 1.5;
+    font-size: 14px;
+    line-height: 1.6;
     resize: none;
     outline: none;
   }
 
   .save-bar {
-    padding: 8px 14px;
+    padding: 10px 16px;
     background: rgba(0, 0, 0, 0.1);
     display: flex;
     justify-content: flex-end;
     align-items: center;
-    gap: 12px;
+    gap: 14px;
   }
 
   .dirty-indicator {
     font-family: var(--font-mono);
-    font-size: 9px;
+    font-size: 10px;
     color: var(--accent-color);
     text-transform: uppercase;
     letter-spacing: 0.05em;
@@ -323,9 +323,9 @@
   .notes-preview {
     flex: 1;
     overflow-y: auto;
-    padding: 14px;
-    font-size: 13px;
-    line-height: 1.6;
+    padding: 16px;
+    font-size: 15px;
+    line-height: 1.7;
     color: var(--text-color);
   }
 
@@ -333,8 +333,8 @@
     position: absolute;
     bottom: 0;
     right: 0;
-    width: 16px;
-    height: 16px;
+    width: 20px;
+    height: 20px;
     cursor: nwse-resize;
     background: linear-gradient(135deg, transparent 50%, var(--border-color) 50%);
   }
@@ -353,31 +353,31 @@
 
   .confirm-dialog {
     background: var(--bg-elevated);
-    padding: 20px;
-    border-radius: 12px;
+    padding: 24px;
+    border-radius: 14px;
     border: 1px solid var(--border-color);
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 16px;
+    gap: 20px;
     box-shadow: 0 8px 32px rgba(0,0,0,0.5);
   }
 
   .confirm-text {
-    font-size: 13px;
+    font-size: 15px;
     text-align: center;
     color: var(--text-bright);
   }
 
   .confirm-actions {
     display: flex;
-    gap: 8px;
+    gap: 12px;
   }
 
   .confirm-btn {
-    padding: 6px 16px;
-    border-radius: 6px;
-    font-size: 12px;
+    padding: 8px 20px;
+    border-radius: 8px;
+    font-size: 14px;
     font-weight: 500;
     cursor: pointer;
     border: none;
@@ -404,7 +404,7 @@
     background: transparent;
     border: none;
     color: var(--text-muted);
-    font-size: 11px;
+    font-size: 12px;
     text-decoration: underline;
     cursor: pointer;
   }
@@ -412,21 +412,21 @@
   /* Markdown styles within preview */
   .notes-preview :global(h1), .notes-preview :global(h2) {
     color: var(--text-bright);
-    margin-top: 1em;
+    margin-top: 1.2em;
     border-bottom: 1px solid var(--border-color);
-    padding-bottom: 0.2em;
+    padding-bottom: 0.3em;
   }
   .notes-preview :global(code) {
     font-family: var(--font-mono);
     background: rgba(148, 163, 184, 0.1);
-    padding: 0.1em 0.3em;
+    padding: 0.2em 0.4em;
     border-radius: 4px;
   }
 
   .primary-btn.mini-btn {
-    padding: 4px 12px;
-    font-size: 11px;
-    border-radius: 6px;
+    padding: 6px 16px;
+    font-size: 13px;
+    border-radius: 8px;
     background: var(--primary-color);
     color: white;
     border: none;

@@ -64,6 +64,7 @@
 
   // Statistics panel state
   let showStats = false;
+  let statsTab = 'overview'; // 'overview' | 'top' | 'targets'
 
   // Compute statistics reactively
   $: nodeCount = $nodes.length;
@@ -85,10 +86,17 @@
   $: mostConnected = Object.values(degreeMap)
     .map(d => ({ ...d, total: d.in + d.out }))
     .sort((a, b) => b.total - a.total)
-    .slice(0, 5);
+    .slice(0, 8);
 
   // Nodes with no connections (isolated)
   $: isolatedCount = Object.values(degreeMap).filter(d => d.in + d.out === 0).length;
+
+  // Nodes that are final targets (in > 0, out == 0)
+  $: finalTargets = Object.values(degreeMap)
+    .filter(d => d.in > 0 && d.out === 0)
+    .sort((a, b) => b.in - a.in);
+  
+  $: endNodeCount = finalTargets.length;
 
   // Default to dark mode for visual excellence
   let isDarkMode = true;
@@ -146,16 +154,41 @@
   }
 
   let fileInput;
+  let showImportConfirm = false;
+  let pendingImportFile = null;
 
   function handleImport(e) {
     const file = e.target.files[0];
-    if (file) {
-      importData(file).then(() => {
-        fileInput.value = '';
-      }).catch(err => {
-        alert('Invalid workspace file.');
-      });
+    if (!file) return;
+
+    // Check if canvas has data
+    if ($nodes.length > 0 || $edges.length > 0) {
+      pendingImportFile = file;
+      showImportConfirm = true;
+      fileInput.value = '';
+    } else {
+      performImport(file);
     }
+  }
+
+  function performImport(file) {
+    importData(file).then(() => {
+      fileInput.value = '';
+      setTimeout(handleFitAll, 100);
+    }).catch(err => {
+      alert('Invalid workspace file.');
+    });
+  }
+
+  function confirmImport(action) {
+    if (action === 'export') {
+      exportData();
+      performImport(pendingImportFile);
+    } else if (action === 'direct') {
+      performImport(pendingImportFile);
+    }
+    showImportConfirm = false;
+    pendingImportFile = null;
   }
 
   onMount(() => {
@@ -194,10 +227,10 @@
 
     <div class="toolbar-group">
       <button class="tool-btn" on:click={exportData} title="Export">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
       </button>
       <button class="tool-btn" on:click={() => fileInput.click()} title="Import">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
       </button>
       <input type="file" accept=".json" bind:this={fileInput} on:change={handleImport} style="display: none;" />
     </div>
@@ -206,14 +239,14 @@
 
     <div class="toolbar-group zoom-group">
       <button class="tool-btn" on:click={handleZoomOut} title="Zoom Out">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="5" y1="12" x2="19" y2="12"/></svg>
       </button>
       <span class="zoom-label">{zoomPercent}%</span>
       <button class="tool-btn" on:click={handleZoomIn} title="Zoom In">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
       </button>
       <button class="tool-btn" on:click={handleFitAll} title="Fit All">
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg>
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg>
       </button>
     </div>
 
@@ -229,7 +262,7 @@
         title={$isAnimating ? 'Stop Constellation' : 'Constellation Mode'}
       >
         <!-- Star/sparkle icon for constellation -->
-        <svg width="14" height="14" viewBox="0 0 24 24" fill={$isAnimating ? 'currentColor' : 'none'} stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill={$isAnimating ? 'currentColor' : 'none'} stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
       </button>
     </div>
 
@@ -243,15 +276,15 @@
         title={isPlayingMusic ? 'Pause Music' : 'Play Music'}
       >
         {#if isPlayingMusic}
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" stroke="none"><rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/></svg>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" stroke="none"><rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/></svg>
         {:else}
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" stroke="none"><polygon points="6,4 20,12 6,20"/></svg>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" stroke="none"><polygon points="6,4 20,12 6,20"/></svg>
         {/if}
       </button>
 
       <div class="track-picker-wrapper" bind:this={trackPickerEl}>
         <button class="tool-btn music-btn" on:click={() => showTrackPicker = !showTrackPicker} title="Select Track">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
         </button>
 
         {#if showTrackPicker}
@@ -263,8 +296,10 @@
             </div>
             {#each tracks as track, i}
               <button class="track-option" class:active={selectedTrack === i} on:click={() => selectTrack(i)}>
-                <span class="track-name">{track.title}</span>
-                <span class="track-author">{track.author}</span>
+                <div class="track-info">
+                  <span class="track-name">{track.title}</span>
+                  <span class="track-author">{track.author}</span>
+                </div>
               </button>
             {/each}
             <div class="track-credit">from pixabay.com</div>
@@ -311,14 +346,14 @@
 
     <button class="tool-btn theme-btn" on:click={toggleTheme} title="Toggle Theme">
       {#if isDarkMode}
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
       {:else}
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
       {/if}
     </button>
 
     <button class="tool-btn help-btn" on:click={() => showHelp = true} title="Help & Credits">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
     </button>
   </header>
 
@@ -343,43 +378,74 @@
       on:click={() => showStats = !showStats}
       title="Statistics"
     >
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
       <span class="stats-badge">{nodeCount}</span>
     </button>
 
     {#if showStats}
       <div class="stats-panel">
-        <div class="stats-grid">
-          <div class="stat-card">
-            <span class="stat-num">{nodeCount}</span>
-            <span class="stat-lbl">nodes</span>
-          </div>
-          <div class="stat-card">
-            <span class="stat-num">{edgeCount}</span>
-            <span class="stat-lbl">edges</span>
-          </div>
-          <div class="stat-card">
-            <span class="stat-num">{nodesWithDesc}</span>
-            <span class="stat-lbl">described</span>
-          </div>
-          <div class="stat-card">
-            <span class="stat-num">{isolatedCount}</span>
-            <span class="stat-lbl">isolated</span>
-          </div>
+        <div class="stats-tabs">
+          <button class="stats-tab-btn" class:active={statsTab === 'overview'} on:click={() => statsTab = 'overview'}>Overview</button>
+          <button class="stats-tab-btn" class:active={statsTab === 'top'} on:click={() => statsTab = 'top'}>Top</button>
+          <button class="stats-tab-btn" class:active={statsTab === 'targets'} on:click={() => statsTab = 'targets'}>Targets</button>
         </div>
 
-        {#if mostConnected.length > 0}
-          <div class="stats-rank">
-            <span class="rank-title">top connected</span>
-            {#each mostConnected as node, i}
-              <div class="rank-row">
-                <span class="rank-pos">{i + 1}</span>
-                <span class="rank-name">{node.label}</span>
-                <span class="rank-score">{node.total}<span class="rank-detail">{node.in}in {node.out}out</span></span>
+        <div class="stats-content">
+          {#if statsTab === 'overview'}
+            <div class="stats-grid">
+              <div class="stat-card">
+                <span class="stat-num">{nodeCount}</span>
+                <span class="stat-lbl">nodes</span>
               </div>
-            {/each}
-          </div>
-        {/if}
+              <div class="stat-card">
+                <span class="stat-num">{edgeCount}</span>
+                <span class="stat-lbl">edges</span>
+              </div>
+              <div class="stat-card">
+                <span class="stat-num">{nodesWithDesc}</span>
+                <span class="stat-lbl">described</span>
+              </div>
+              <div class="stat-card">
+                <span class="stat-num">{isolatedCount}</span>
+                <span class="stat-lbl">isolated</span>
+              </div>
+              <div class="stat-card large-stat">
+                <span class="stat-num">{endNodeCount}</span>
+                <span class="stat-lbl">final targets</span>
+              </div>
+            </div>
+          {:else if statsTab === 'top'}
+            <div class="stats-rank">
+              <span class="rank-title">most connected nodes</span>
+              {#if mostConnected.length > 0}
+                {#each mostConnected as node, i}
+                  <div class="rank-row">
+                    <span class="rank-pos">{i + 1}</span>
+                    <span class="rank-name">{node.label}</span>
+                    <span class="rank-score">{node.total}<span class="rank-detail">{node.in}in {node.out}out</span></span>
+                  </div>
+                {/each}
+              {:else}
+                <div class="empty-state">No connections established</div>
+              {/if}
+            </div>
+          {:else if statsTab === 'targets'}
+            <div class="stats-rank">
+              <span class="rank-title">final target nodes (in only)</span>
+              {#if finalTargets.length > 0}
+                {#each finalTargets as node, i}
+                  <div class="rank-row">
+                    <span class="rank-pos">{i + 1}</span>
+                    <span class="rank-name">{node.label}</span>
+                    <span class="rank-score">{node.in}<span class="rank-detail">incoming</span></span>
+                  </div>
+                {/each}
+              {:else}
+                <div class="empty-state">No end-of-path nodes found</div>
+              {/if}
+            </div>
+          {/if}
+        </div>
       </div>
     {/if}
   </div>
@@ -399,7 +465,7 @@
             </div>
           </div>
           <button class="dialog-close" on:click={() => showHelp = false}>
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
           </button>
         </div>
 
@@ -461,7 +527,7 @@
                     <p class="about-text">
                       Built with Svelte 5 and Vite. Designed for brainstorming and clustering ideas — importance emerges naturally from connections.
                     </p>
-                    <p class="about-text" style="margin-top: 10px;">
+                    <p class="about-text" style="margin-top: 14px;">
                       Graphn follows the <strong>Observatory</strong> design philosophy: a deep-space cartography aesthetic focusing on technical precision and atmospheric clarity.
                     </p>
                   </div>
@@ -469,11 +535,11 @@
                   {#if helpTab === 'tryitout'}
                     <div class="dialog-section">
                       <span class="dialog-section-title">sample workspace</span>
-                      <p class="about-text" style="margin-bottom: 10px;">
+                      <p class="about-text" style="margin-bottom: 14px;">
                         Load a sample graph to see how node mapping reveals what matters most. This demo maps the challenges of launching a startup — watch how Funding, MVP, and Team emerge as critical nodes.
                       </p>
                       <button class="demo-btn" on:click={() => { loadDemoData(); showHelp = false; setTimeout(handleFitAll, 100); }}>
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>
                         Load Demo — Startup Launch
                       </button>
                     </div>
@@ -482,6 +548,38 @@
               {/if}
             {/if}
           {/if}
+        </div>
+      </div>
+    </div>
+  {/if}
+
+  <!-- Import Confirmation Dialog -->
+  {#if showImportConfirm}
+    <!-- svelte-ignore a11y-click-events-have-key-events -->
+    <!-- svelte-ignore a11y-no-static-element-interactions -->
+    <div class="dialog-overlay import-overlay" style="z-index: 1000">
+      <div class="dialog confirm-dialog" on:click|stopPropagation>
+        <div class="dialog-header">
+          <div class="dialog-brand">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--primary-color)" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+            <span class="dialog-title" style="font-size: 16px;">Import Workspace</span>
+          </div>
+        </div>
+        <div class="dialog-body">
+          <p class="about-text" style="margin-bottom: 20px;">
+            The current canvas has active data. Would you like to save your work before importing the new file?
+          </p>
+          <div class="import-confirm-actions">
+            <button class="confirm-option-btn primary" on:click={() => confirmImport('export')}>
+              <span class="btn-label">Export then Import</span>
+              <span class="btn-desc">Saves current project to JSON first</span>
+            </button>
+            <button class="confirm-option-btn secondary" on:click={() => confirmImport('direct')}>
+              <span class="btn-label">Import Directly</span>
+              <span class="btn-desc">Overwrites current canvas immediately</span>
+            </button>
+            <button class="cancel-link" style="margin-top: 10px;" on:click={() => showImportConfirm = false}>Cancel</button>
+          </div>
         </div>
       </div>
     </div>
@@ -563,6 +661,7 @@
     transition: background-color 0.4s ease, color 0.4s ease;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    font-size: 16px;
   }
 
   .app-container {
@@ -585,8 +684,8 @@
     z-index: 50;
     display: flex;
     align-items: center;
-    gap: 6px;
-    padding: 6px 10px;
+    gap: 8px;
+    padding: 8px 12px;
     background: var(--bg-elevated);
     backdrop-filter: var(--glass-blur);
     -webkit-backdrop-filter: var(--glass-blur);
@@ -614,31 +713,31 @@
   .toolbar-brand {
     display: flex;
     align-items: center;
-    gap: 8px;
-    padding: 2px 8px 2px 4px;
+    gap: 10px;
+    padding: 2px 10px 2px 4px;
   }
 
   .toolbar-logo {
-    width: 28px;
-    height: 28px;
-    border-radius: 7px;
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
   }
 
   .toolbar-title {
     display: flex;
     flex-direction: column;
-    line-height: 1;
+    line-height: 1.1;
   }
 
   .title-text {
-    font-size: 14px;
+    font-size: 16px;
     font-weight: 600;
     letter-spacing: -0.02em;
     color: var(--text-bright);
   }
 
   .title-sub {
-    font-size: 9px;
+    font-size: 10px;
     font-family: var(--font-mono);
     color: var(--text-muted);
     letter-spacing: 0.04em;
@@ -647,26 +746,26 @@
 
   .toolbar-divider {
     width: 1px;
-    height: 24px;
+    height: 28px;
     background: var(--border-color);
-    margin: 0 4px;
+    margin: 0 6px;
   }
 
   .toolbar-group {
     display: flex;
     align-items: center;
-    gap: 2px;
+    gap: 4px;
   }
 
   .tool-btn {
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 34px;
-    height: 34px;
+    width: 38px;
+    height: 38px;
     background: transparent;
     border: 1px solid transparent;
-    border-radius: 8px;
+    border-radius: 10px;
     color: var(--text-muted);
     cursor: pointer;
     transition: all 0.15s ease;
@@ -684,33 +783,33 @@
   }
 
   .zoom-group {
-    gap: 0;
+    gap: 2px;
   }
 
   .zoom-label {
     font-family: var(--font-mono);
-    font-size: 11px;
+    font-size: 12px;
     font-weight: 500;
     color: var(--text-muted);
-    min-width: 40px;
+    min-width: 45px;
     text-align: center;
     letter-spacing: -0.02em;
   }
 
   .palette-trigger {
     width: auto;
-    padding: 0 8px;
+    padding: 0 10px;
   }
 
   .palette-dots {
     display: flex;
-    gap: 3px;
+    gap: 4px;
     align-items: center;
   }
 
   .palette-dot {
-    width: 8px;
-    height: 8px;
+    width: 10px;
+    height: 10px;
     border-radius: 50%;
     transition: transform 0.15s;
   }
@@ -781,7 +880,7 @@
     border-radius: 12px;
     box-shadow: 0 16px 48px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(148, 163, 184, 0.04);
     z-index: 200;
-    min-width: 220px;
+    min-width: 240px;
     overflow: hidden;
     animation: dropdown-enter 0.2s cubic-bezier(0.16, 1, 0.3, 1) both;
   }
@@ -795,12 +894,12 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 10px 14px;
+    padding: 12px 16px;
     border-bottom: 1px solid var(--border-color);
   }
 
   .palette-dd-title {
-    font-size: 11px;
+    font-size: 12px;
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.08em;
@@ -809,15 +908,15 @@
 
   .palette-dd-count {
     font-family: var(--font-mono);
-    font-size: 10px;
+    font-size: 11px;
     color: var(--text-muted);
   }
 
   .palette-option {
     display: flex;
     align-items: center;
-    gap: 12px;
-    padding: 10px 14px;
+    gap: 14px;
+    padding: 12px 16px;
     background: transparent;
     border: none;
     border-bottom: 1px solid var(--border-color);
@@ -846,16 +945,16 @@
 
   .palette-name {
     font-family: var(--font-mono);
-    font-size: 11px;
+    font-size: 13px;
     font-weight: 500;
-    min-width: 55px;
+    min-width: 65px;
     text-transform: lowercase;
   }
 
   .palette-bar {
     display: flex;
     flex: 1;
-    height: 14px;
+    height: 16px;
     border-radius: 4px;
     overflow: hidden;
   }
@@ -887,26 +986,26 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 12px;
+    gap: 14px;
     pointer-events: none;
     animation: hint-pulse 3s ease-in-out infinite;
   }
 
   .hint-icon {
-    width: 56px;
-    height: 56px;
+    width: 64px;
+    height: 64px;
     display: flex;
     align-items: center;
     justify-content: center;
     border: 2px dashed rgba(148, 163, 184, 0.15);
     border-radius: 50%;
-    font-size: 24px;
+    font-size: 28px;
     color: var(--text-muted);
     font-weight: 300;
   }
 
   .canvas-hint span:last-child {
-    font-size: 13px;
+    font-size: 15px;
     color: var(--text-muted);
     font-weight: 400;
     letter-spacing: 0.01em;
@@ -928,13 +1027,13 @@
   .stats-trigger {
     display: flex;
     align-items: center;
-    gap: 6px;
-    padding: 8px 12px;
+    gap: 8px;
+    padding: 10px 14px;
     background: var(--bg-elevated);
     backdrop-filter: var(--glass-blur);
     -webkit-backdrop-filter: var(--glass-blur);
     border: var(--glass-border);
-    border-radius: 10px;
+    border-radius: 12px;
     color: var(--text-muted);
     cursor: pointer;
     box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
@@ -949,9 +1048,9 @@
 
   .stats-badge {
     font-family: var(--font-mono);
-    font-size: 11px;
+    font-size: 12px;
     font-weight: 500;
-    padding: 1px 6px;
+    padding: 2px 8px;
     background: rgba(6, 182, 212, 0.1);
     border-radius: 6px;
     color: var(--primary-color);
@@ -967,9 +1066,42 @@
     border: var(--glass-border);
     border-radius: 14px;
     box-shadow: 0 16px 48px rgba(0, 0, 0, 0.35);
-    min-width: 260px;
+    min-width: 300px;
     overflow: hidden;
     animation: dropdown-enter 0.2s cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+
+  .stats-tabs {
+    display: flex;
+    gap: 4px;
+    padding: 8px 12px;
+    border-bottom: 1px solid var(--border-color);
+    background: rgba(255, 255, 255, 0.01);
+  }
+
+  .stats-tab-btn {
+    background: transparent;
+    border: none;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-muted);
+    padding: 4px 10px;
+    cursor: pointer;
+    border-radius: 6px;
+    transition: all 0.15s;
+  }
+
+  .stats-tab-btn:hover {
+    color: var(--text-color);
+    background: rgba(148, 163, 184, 0.06);
+  }
+
+  .stats-tab-btn.active {
+    color: var(--primary-color);
+    background: rgba(6, 182, 212, 0.08);
   }
 
   .stats-grid {
@@ -977,28 +1109,32 @@
     grid-template-columns: 1fr 1fr;
     gap: 1px;
     background: var(--border-color);
-    border-bottom: 1px solid var(--border-color);
   }
 
   .stat-card {
     display: flex;
     flex-direction: column;
     align-items: center;
-    padding: 14px 10px;
+    padding: 16px 12px;
     background: var(--bg-elevated);
-    gap: 2px;
+    gap: 4px;
+  }
+
+  .stat-card.large-stat {
+    grid-column: span 2;
+    border-top: 1px solid var(--border-color);
   }
 
   .stat-num {
     font-family: var(--font-mono);
-    font-size: 20px;
+    font-size: 24px;
     font-weight: 500;
     color: var(--text-bright);
     letter-spacing: -0.03em;
   }
 
   .stat-lbl {
-    font-size: 10px;
+    font-size: 11px;
     text-transform: uppercase;
     letter-spacing: 0.1em;
     color: var(--text-muted);
@@ -1006,36 +1142,38 @@
   }
 
   .stats-rank {
-    padding: 12px 14px;
+    padding: 14px 16px;
+    max-height: 300px;
+    overflow-y: auto;
   }
 
   .rank-title {
     display: block;
-    font-size: 10px;
+    font-size: 11px;
     text-transform: uppercase;
     letter-spacing: 0.1em;
     color: var(--text-muted);
     font-weight: 600;
-    margin-bottom: 8px;
+    margin-bottom: 10px;
   }
 
   .rank-row {
     display: flex;
     align-items: center;
-    gap: 8px;
-    padding: 5px 0;
+    gap: 10px;
+    padding: 6px 0;
   }
 
   .rank-pos {
     font-family: var(--font-mono);
-    font-size: 10px;
+    font-size: 11px;
     color: var(--text-muted);
-    width: 14px;
+    width: 16px;
     text-align: right;
   }
 
   .rank-name {
-    font-size: 12px;
+    font-size: 14px;
     font-weight: 500;
     color: var(--text-color);
     flex: 1;
@@ -1043,16 +1181,24 @@
 
   .rank-score {
     font-family: var(--font-mono);
-    font-size: 12px;
+    font-size: 14px;
     font-weight: 500;
     color: var(--primary-color);
   }
 
   .rank-detail {
-    font-size: 9px;
+    font-size: 10px;
     color: var(--text-muted);
-    margin-left: 4px;
+    margin-left: 6px;
     font-weight: 400;
+  }
+
+  .empty-state {
+    font-size: 12px;
+    color: var(--text-muted);
+    text-align: center;
+    padding: 20px 0;
+    font-style: italic;
   }
 
   /* ─── MUSIC PICKER ─── */
@@ -1075,18 +1221,18 @@
     border-radius: 12px;
     box-shadow: 0 16px 48px rgba(0, 0, 0, 0.4);
     z-index: 200;
-    min-width: 240px;
+    min-width: 260px;
     overflow: hidden;
     animation: dropdown-enter 0.2s cubic-bezier(0.16, 1, 0.3, 1) both;
   }
 
   .track-dd-header {
-    padding: 10px 14px;
+    padding: 12px 16px;
     border-bottom: 1px solid var(--border-color);
   }
 
   .track-dd-title {
-    font-size: 11px;
+    font-size: 12px;
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.08em;
@@ -1097,8 +1243,8 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    gap: 10px;
-    padding: 10px 14px;
+    gap: 12px;
+    padding: 12px 16px;
     background: transparent;
     border: none;
     border-bottom: 1px solid var(--border-color);
@@ -1126,20 +1272,23 @@
   }
 
   .track-name {
-    font-size: 12px;
+    font-size: 14px;
     font-weight: 500;
+    display: block;
   }
 
   .track-author {
     font-family: var(--font-mono);
-    font-size: 10px;
+    font-size: 11px;
     color: var(--text-muted);
+    display: block;
+    margin-top: 2px;
   }
 
   .track-credit {
-    padding: 8px 14px;
+    padding: 10px 16px;
     font-family: var(--font-mono);
-    font-size: 9px;
+    font-size: 10px;
     color: var(--text-muted);
     text-align: center;
     border-top: 1px solid var(--border-color);
@@ -1178,7 +1327,7 @@
     border: var(--glass-border);
     border-radius: 16px;
     box-shadow: 0 24px 64px rgba(0, 0, 0, 0.5);
-    width: 420px;
+    width: 480px;
     max-height: 80vh;
     overflow-y: auto;
     animation: dropdown-enter 0.25s cubic-bezier(0.16, 1, 0.3, 1) both;
@@ -1188,25 +1337,25 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 16px 20px;
+    padding: 20px 24px;
     border-bottom: 1px solid var(--border-color);
   }
 
   .dialog-brand {
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 12px;
   }
 
   .dialog-logo {
-    width: 36px;
-    height: 36px;
-    border-radius: 8px;
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
   }
 
   .dialog-title {
     display: block;
-    font-size: 16px;
+    font-size: 18px;
     font-weight: 600;
     color: var(--text-bright);
     letter-spacing: -0.02em;
@@ -1214,7 +1363,7 @@
 
   .dialog-version {
     font-family: var(--font-mono);
-    font-size: 10px;
+    font-size: 11px;
     color: var(--text-muted);
     letter-spacing: 0.04em;
   }
@@ -1224,8 +1373,8 @@
     border: none;
     color: var(--text-muted);
     cursor: pointer;
-    padding: 4px;
-    border-radius: 6px;
+    padding: 6px;
+    border-radius: 8px;
     display: flex;
     transition: color 0.15s, background 0.15s;
   }
@@ -1236,11 +1385,11 @@
   }
 
   .dialog-body {
-    padding: 16px 20px;
+    padding: 20px 24px;
   }
 
   .dialog-section {
-    margin-bottom: 18px;
+    margin-bottom: 24px;
   }
 
   .dialog-section:last-child {
@@ -1250,57 +1399,58 @@
   .dialog-section-title {
     display: block;
     font-family: var(--font-mono);
-    font-size: 10px;
+    font-size: 11px;
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.1em;
     color: var(--primary-color);
-    margin-bottom: 10px;
+    margin-bottom: 14px;
   }
 
   .help-grid {
     display: grid;
     grid-template-columns: auto 1fr;
-    gap: 6px 12px;
+    gap: 8px 16px;
     align-items: center;
   }
 
   .help-grid kbd {
     font-family: var(--font-mono);
-    font-size: 10px;
-    padding: 2px 7px;
+    font-size: 11px;
+    padding: 3px 8px;
     background: rgba(148, 163, 184, 0.06);
     border: 1px solid var(--border-color);
-    border-radius: 5px;
+    border-radius: 6px;
     color: var(--text-bright);
     white-space: nowrap;
   }
 
   .help-grid span {
-    font-size: 12px;
+    font-size: 14px;
     color: var(--text-color);
   }
 
   .feature-list {
     margin: 0;
-    padding: 0 0 0 16px;
+    padding: 0 0 0 20px;
     list-style: none;
   }
 
   .feature-list li {
-    font-size: 12px;
+    font-size: 14px;
     color: var(--text-color);
-    padding: 3px 0;
+    padding: 5px 0;
     position: relative;
+    line-height: 1.5;
   }
 
   .feature-list li::before {
     content: '';
     position: absolute;
-    left: -12px;
-    top: 10px;
-    width: 4px;
-    height: 4px;
+    left: -16px;
+    top: 12px;
+    width: 5px;
+    height: 5px;
     border-radius: 50%;
     background: var(--primary-color);
     opacity: 0.6;
@@ -1309,57 +1459,57 @@
   .credit-list {
     display: flex;
     flex-direction: column;
-    gap: 6px;
+    gap: 8px;
   }
 
   .credit-row {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 6px 10px;
+    padding: 8px 14px;
     background: rgba(148, 163, 184, 0.03);
-    border-radius: 6px;
+    border-radius: 8px;
   }
 
   .credit-title {
-    font-size: 12px;
+    font-size: 14px;
     font-weight: 500;
     color: var(--text-color);
   }
 
   .credit-author {
     font-family: var(--font-mono);
-    font-size: 10px;
+    font-size: 11px;
     color: var(--text-muted);
   }
 
   .credit-source {
     font-family: var(--font-mono);
-    font-size: 9px;
+    font-size: 10px;
     color: var(--text-muted);
     text-align: center;
-    margin-top: 4px;
+    margin-top: 6px;
   }
 
   .about-text {
     margin: 0;
-    font-size: 12px;
+    font-size: 14px;
     color: var(--text-color);
-    line-height: 1.6;
+    line-height: 1.7;
   }
 
   .demo-btn {
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 10px;
     width: 100%;
-    padding: 10px 14px;
+    padding: 12px 16px;
     background: rgba(6, 182, 212, 0.08);
     border: 1px solid rgba(6, 182, 212, 0.2);
-    border-radius: 8px;
+    border-radius: 10px;
     color: var(--primary-color);
     font-family: var(--font-mono);
-    font-size: 12px;
+    font-size: 14px;
     font-weight: 500;
     cursor: pointer;
     transition: all 0.15s ease;
@@ -1378,8 +1528,8 @@
   /* ─── HELP TABS ─── */
   .help-tabs {
     display: flex;
-    gap: 4px;
-    padding: 8px 16px;
+    gap: 6px;
+    padding: 10px 20px;
     border-bottom: 1px solid var(--border-color);
     background: rgba(255, 255, 255, 0.01);
     overflow-x: auto;
@@ -1389,14 +1539,14 @@
     background: transparent;
     border: none;
     font-family: var(--font-mono);
-    font-size: 10px;
+    font-size: 11px;
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.05em;
     color: var(--text-muted);
-    padding: 6px 12px;
+    padding: 8px 14px;
     cursor: pointer;
-    border-radius: 6px;
+    border-radius: 8px;
     transition: all 0.15s;
     white-space: nowrap;
   }
@@ -1411,9 +1561,70 @@
     background: rgba(6, 182, 212, 0.08);
   }
 
+  /* ─── IMPORT CONFIRM ─── */
+  .import-confirm-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    width: 100%;
+  }
+
+  .confirm-option-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 12px 16px;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.2s;
+    border: 1px solid var(--border-color);
+    text-align: left;
+    gap: 4px;
+  }
+
+  .confirm-option-btn.primary {
+    background: rgba(6, 182, 212, 0.08);
+    border-color: rgba(6, 182, 212, 0.2);
+  }
+
+  .confirm-option-btn.primary:hover {
+    background: rgba(6, 182, 212, 0.15);
+    border-color: var(--primary-color);
+  }
+
+  .confirm-option-btn.secondary {
+    background: rgba(148, 163, 184, 0.05);
+  }
+
+  .confirm-option-btn.secondary:hover {
+    background: rgba(148, 163, 184, 0.1);
+    border-color: var(--text-muted);
+  }
+
+  .btn-label {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-bright);
+  }
+
+  .btn-desc {
+    font-size: 11px;
+    color: var(--text-muted);
+  }
+
+  .cancel-link {
+    background: transparent;
+    border: none;
+    color: var(--text-muted);
+    font-size: 12px;
+    text-decoration: underline;
+    cursor: pointer;
+    align-self: center;
+  }
+
   /* ─── SCROLLBAR ─── */
   :global(::-webkit-scrollbar) {
-    width: 5px;
+    width: 6px;
   }
   :global(::-webkit-scrollbar-track) {
     background: transparent;
