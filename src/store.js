@@ -4,7 +4,7 @@ import { currentCmap, setCmap } from './colormap-store.js';
 // Demo data: "Launching a Startup" — a common challenge where connections reveal priorities
 const demoData = {
   nodes: [
-    { id: 'n_idea', x: 400, y: 100, label: 'Business Idea', description: 'Core concept validation' },
+    { id: 'n_idea', x: 400, y: 100, label: 'Business Idea', description: 'Core concept validation', notes: '# Initial Brainstorm\n- High potential\n- Scalable\n- *Validate first*' },
     { id: 'n_market', x: 200, y: 220, label: 'Market Research', description: 'Who are the customers?' },
     { id: 'n_mvp', x: 600, y: 220, label: 'MVP', description: 'Minimum viable product' },
     { id: 'n_funding', x: 400, y: 350, label: 'Funding', description: 'How to finance the venture' },
@@ -93,9 +93,9 @@ edges.subscribe(value => {
 // Generate a simple unique ID
 export const generateId = () => Math.random().toString(36).substr(2, 9);
 
-export const addNode = (x, y, label, description = '') => {
+export const addNode = (x, y, label, description = '', notes = '') => {
   const newId = generateId();
-  nodes.update(ns => [...ns, { id: newId, x, y, label, description }]);
+  nodes.update(ns => [...ns, { id: newId, x, y, label, description, notes }]);
   return newId;
 };
 

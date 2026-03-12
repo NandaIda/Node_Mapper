@@ -23,27 +23,32 @@ No test framework, linter, or formatter is configured.
 Three Svelte writable stores with localStorage auto-persistence:
 
 - `store.js` — graph data (nodes, edges) + JSON file import/export (includes palette in export)
-- `ui-store.js` — viewport (viewBox, zoom), popup state, selection, `isAnimating` (constellation mode)
+- `ui-store.js` — viewport (viewBox, zoom), popup state, selection, `activeNotes` (floating windows), `isAnimating` (constellation mode)
 - `colormap-store.js` — 5 color palettes, `getNodeColorByDegree(degree, maxDegree, cmapName)` maps connection count to color via HSL interpolation
 
 ### Component Tree
 
 ```
 App.svelte              → floating toolbar, stats panel, music player, help dialog
-├── GraphCanvas.svelte  → SVG container, pan/zoom, constellation animation loop
+├── GraphCanvas.svelte  → SVG container, pan/zoom, constellation animation loop, touch gestures
 │   ├── Edge.svelte     → directed edge with dynamic thickness/opacity by importance
-│   └── Node.svelte     → node with dynamic radius/color/glow by degree
+│   └── Node.svelte     → node with dynamic radius/color/glow by degree + clickable Notes icon
+├── NoteWindow.svelte   → floating, movable, resizable, pinnable Markdown note window
 └── Popups.svelte       → glassmorphism modal forms for creating/editing nodes and edges
 ```
 
 ### Key Patterns
 
-- **Pan/zoom**: SVG viewBox manipulation (not CSS transforms). Coordinate conversion via `SVGPoint` + `getScreenCTM()`.
-- **Degree-based visuals**: Node radius (18–40px), font size (12–18px), color, and glow intensity all derive from `degree / maxDegree`. Edge thickness and opacity scale by combined source+target degree.
-- **Constellation mode**: Visual-only animation via offset props (`offsetX`, `offsetY`) — never mutates store positions. Glow pulse uses CSS animation with per-node unique duration/delay. Ambient music plays/pauses (not resets) with the animation.
-- **Data shapes**: Nodes `{ id, x, y, label, description }`. Edges `{ id, sourceId, targetId, label, description }`.
+- **Svelte 5 Performance**: Leverage Svelte 5's surgical DOM updates and reactive stores to ensure 60fps performance on both PC and Mobile. Avoid unnecessary re-renders.
+- **Pan/zoom**: SVG viewBox manipulation. Supported by both Mouse (Wheel/Drag) and Touch (Pinch/Pan via `svelte-gestures`).
+- **Degree-based visuals**: Node radius (18–40px), font size (12–18px), color, and glow intensity all derive from `degree / maxDegree`.
+- **Floating Note Windows**: 
+  - Managed via `activeNotes` store in `ui-store.js`.
+  - Supports multiple windows, pinning, resizing, and dragging.
+  - Automatic dirty-state tracking with "Save/Discard" confirmation before closing.
+  - Interactive yellow icon (`#fbbf24`) on nodes triggers the window.
 - **Persistence**: Theme, selected palette, selected music track, viewport, and graph data all persist to localStorage.
-- Pure JavaScript (no TypeScript). Minimal dependencies (only lucide-svelte for icons).
+- Pure JavaScript (no TypeScript). Minimal dependencies (lucide-svelte, svelte-gestures, marked).
 
 ### Music
 
@@ -58,7 +63,7 @@ The UI follows a **deep-space cartography** aesthetic. All new features and UI a
 
 ### Typography
 - **Body**: `DM Sans` — warm, slightly geometric
-- **Data/labels/tags**: `JetBrains Mono` — technical precision
+- **Data/labels/tags/editor**: `JetBrains Mono` — technical precision
 - Never use generic fonts (Inter, Arial, Roboto, system-ui alone)
 
 ### Color System (Dark Mode Primary)
@@ -74,23 +79,16 @@ The UI follows a **deep-space cartography** aesthetic. All new features and UI a
 | `--text-bright` | `#e8ecf2` | Headings, important text |
 | `--text-color` | `#c8d6e5` | Body text |
 | `--text-muted` | `#5a6a80` | Secondary, labels |
+| **Notes Icon** | `#fbbf24` | Persistent yellow for visibility across themes |
 
 ### UI Rules
-- **Glassmorphism**: All floating panels use `backdrop-filter: blur(20px)` + semi-transparent background + subtle 1px border (`rgba(148, 163, 184, 0.06)`)
-- **Animations**: Use `cubic-bezier(0.16, 1, 0.3, 1)` for panel entrances. Keep durations 0.15–0.25s for interactions.
-- **Toolbar**: Compact floating bar at top center. Icon-only buttons (34x34px), dividers between groups. No text labels on toolbar buttons.
-- **Panels** (stats, dropdowns): Appear near their trigger with `dropdown-enter` animation. Use monospace uppercase section headers.
-- **Canvas**: Dot grid background (`40px` spacing). Subtle radial gradient atmosphere.
-- **Nodes**: Always have ambient glow blur circle behind them. Glow scales with degree.
-- **Buttons**: `tool-btn` class — transparent bg, 1px transparent border, hover shows colored bg + border.
-- **Data display**: Use `var(--font-mono)` for numbers, percentages, counts. Use `kbd` styling for keyboard shortcuts.
+- **Lag-Free Experience**: Ensure `touch-action: none` on interactive surfaces. Use `transform-box: fill-box` for SVG icons.
+- **Glassmorphism**: All floating panels use `backdrop-filter: blur(20px)` + semi-transparent background + subtle 1px border.
+- **Animations**: Use `cubic-bezier(0.16, 1, 0.3, 1)` for panel entrances.
+- **Interactive Icons**: Grouped SVG elements with stable hover scaling (nested groups + transform-origin).
 
 ### Adding New Features
-1. Keep the Observatory aesthetic — dark, atmospheric, technical
-2. Use CSS variables for all colors, never hardcode
-3. New panels/dialogs follow glassmorphism pattern (see `.dialog`, `.palette-dropdown`)
-4. Persist user preferences to localStorage
-5. Animations should be subtle — no jarring transitions
-6. Constellation mode animations must be visual-only (offsets/CSS), never mutate store data
-7. Music/audio: pause/resume pattern, never reset to 0 on toggle
-8. Export format includes all relevant preferences (palette, etc.)
+1. Keep the Observatory aesthetic — dark, atmospheric, technical.
+2. **Prefer Svelte 5 patterns** for all logic to ensure cross-platform performance.
+3. Test interactions on both Mouse and Touch.
+4. Persist user preferences and ensure Export/Import remains compatible.

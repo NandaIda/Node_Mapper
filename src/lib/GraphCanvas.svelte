@@ -1,12 +1,12 @@
 <script>
   import { onMount, onDestroy } from 'svelte';
   import { nodes, edges, updateNodePosition } from '../store.js';
-  import { popupState, selectedNodeId, selectedEdgeId, hoveredNodeId, viewBox, zoom, panBy, zoomTo, isAnimating } from '../ui-store.js';
+  import { popupState, selectedNodeId, selectedEdgeId, hoveredNodeId, viewBox, zoom, panBy, zoomTo, isAnimating, closeUnpinnedNotes } from '../ui-store.js';
   import Node from './Node.svelte';
   import Edge from './Edge.svelte';
+  import * as gestures from 'svelte-gestures';
 
-  // Constellation mode — no node movement, just CSS glow pulse + music
-  // The `animating` prop on Node triggers the pulsing class via CSS only
+  const { pan, pinch } = gestures;
 
   // Compute degree for each node
   $: degreeMap = (() => {
@@ -29,6 +29,9 @@
   let panStartViewBoxX = 0;
   let panStartViewBoxY = 0;
   let resizeObserver;
+
+  // Pinch zoom state
+  let initialPinchZoom = 1;
 
   function clientToSvgCoords(clientX, clientY) {
     const pt = svg.createSVGPoint();
@@ -64,8 +67,16 @@
     if (e.target === svg) {
       selectedNodeId.set(null);
       selectedEdgeId.set(null);
+      
+      // Attempt to close unpinned notes
+      const allClosed = closeUnpinnedNotes();
+      if (!allClosed) {
+        // If some notes didn't close (due to dirty state), we might want to prevent selection clearing
+        // but for now we let it clear.
+      }
+      
       if ($popupState.type) {
-        popupState.set({ type: null, x: 0, y: 0, sourceNodeId: null, editTargetId: null });
+        popupState.set({ type: null, x: 0, y: 0, sourceNodeId: null, editTargetId: null, startMode: null });
       }
     }
   }
@@ -75,6 +86,9 @@
     draggedNodeId = id;
     selectedNodeId.set(id);
     selectedEdgeId.set(null);
+    
+    // Attempt to close other unpinned notes
+    closeUnpinnedNotes(id);
   }
 
   function handleMouseDown(e) {
@@ -139,6 +153,37 @@
     zoom.set(newZoom);
   }
 
+  // Gesture Handlers
+  function handlePanStart() {
+    if (isDraggingNode) return;
+    panStartViewBoxX = $viewBox.x;
+    panStartViewBoxY = $viewBox.y;
+  }
+
+  function handlePan(e) {
+    if (isDraggingNode) return;
+    const { detail } = e;
+    const screenCTM = svg.getScreenCTM();
+    const scale = screenCTM ? screenCTM.a : 1;
+    
+    viewBox.set({
+      x: panStartViewBoxX - detail.x / scale,
+      y: panStartViewBoxY - detail.y / scale,
+      width: $viewBox.width,
+      height: $viewBox.height
+    });
+  }
+
+  function handlePinchStart() {
+    initialPinchZoom = $zoom;
+  }
+
+  function handlePinch(e) {
+    const { detail } = e;
+    const newZoom = Math.max(0.1, Math.min(5, initialPinchZoom * detail.scale));
+    zoomTo(newZoom, detail.center.x, detail.center.y);
+  }
+
   onMount(() => {
     if (svg && svg.parentElement) {
       const width = svg.clientWidth;
@@ -177,6 +222,12 @@
   on:mouseup={handleMouseUp}
   on:mouseleave={handleMouseUp}
   on:wheel={handleWheel}
+  use:pan={{ delay: 100 }}
+  on:panstart={handlePanStart}
+  on:pan={handlePan}
+  use:pinch
+  on:pinchstart={handlePinchStart}
+  on:pinch={handlePinch}
 >
   <defs>
     <marker id="arrowhead" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto">
@@ -217,5 +268,6 @@
     height: 100%;
     background-color: transparent;
     cursor: crosshair;
+    touch-action: none;
   }
 </style>

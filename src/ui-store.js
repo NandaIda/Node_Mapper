@@ -5,8 +5,76 @@ export const popupState = writable({
   x: 0,
   y: 0,
   sourceNodeId: null,
-  editTargetId: null // Used for EDIT_NODE and EDIT_RELATION
+  editTargetId: null,
+  startMode: null
 });
+
+// Store for multiple active note windows
+// Each entry: { nodeId, x, y, width, height, mode, isPinned }
+export const activeNotes = writable([]);
+
+export const openNote = (nodeId, x, y, mode = 'preview') => {
+  activeNotes.update(notes => {
+    // If already open, just bring to front (by moving to end of array) or keep as is
+    const existingIndex = notes.findIndex(n => n.nodeId === nodeId);
+    if (existingIndex !== -1) {
+      const existing = notes[existingIndex];
+      const updated = [...notes];
+      updated.splice(existingIndex, 1);
+      return [...updated, { ...existing, mode }];
+    }
+    // Add new window
+    return [...notes, {
+      nodeId,
+      x: x || 100,
+      y: y || 100,
+      width: 320,
+      height: 400,
+      mode,
+      isPinned: false,
+      isDirty: false,
+      showConfirm: false
+    }];
+  });
+};
+
+export const closeNote = (nodeId) => {
+  activeNotes.update(notes => notes.filter(n => n.nodeId !== nodeId));
+};
+
+export const updateNoteWindow = (nodeId, updates) => {
+  activeNotes.update(notes => notes.map(n => n.nodeId === nodeId ? { ...n, ...updates } : n));
+};
+
+export const requestCloseNote = (nodeId) => {
+  let note;
+  activeNotes.subscribe(notes => {
+    note = notes.find(n => n.nodeId === nodeId);
+  })();
+
+  if (note && note.isDirty) {
+    updateNoteWindow(nodeId, { showConfirm: true });
+    return false; // Managed by confirmation
+  } else {
+    closeNote(nodeId);
+    return true; // Successfully closed
+  }
+};
+
+export const closeUnpinnedNotes = (exceptNodeId = null) => {
+  let notesToClose = [];
+  activeNotes.subscribe(notes => {
+    notesToClose = notes.filter(n => !n.isPinned && n.nodeId !== exceptNodeId);
+  })();
+
+  let allClosed = true;
+  notesToClose.forEach(n => {
+    const closed = requestCloseNote(n.nodeId);
+    if (!closed) allClosed = false;
+  });
+  
+  return allClosed;
+};
 
 export const selectedNodeId = writable(null);
 export const selectedEdgeId = writable(null);

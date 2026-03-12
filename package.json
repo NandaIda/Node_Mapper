@@ -17,6 +17,7 @@
     "vite": "^8.0.0-beta.13"
   },
   "dependencies": {
-    "lucide-svelte": "^0.577.0"
+    "lucide-svelte": "^0.577.0",
+    "svelte-gestures": "^5.2.2"
   }
 }

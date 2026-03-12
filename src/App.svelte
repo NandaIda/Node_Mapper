@@ -1,11 +1,12 @@
 <script>
   import GraphCanvas from './lib/GraphCanvas.svelte';
   import Popups from './lib/Popups.svelte';
+  import NoteWindow from './lib/NoteWindow.svelte';
   import { onMount } from 'svelte';
   import { exportData, importData, loadDemoData } from './store.js';
   import { currentCmap, setCmap, getAvailableCmaps, getSwatchColor } from './colormap-store.js';
   import { nodes, edges } from './store.js';
-  import { viewBox, zoom, zoomTo, fitToNodes, isAnimating } from './ui-store.js';
+  import { viewBox, zoom, zoomTo, fitToNodes, isAnimating, activeNotes } from './ui-store.js';
 
   // Music
   const tracks = [
@@ -59,6 +60,7 @@
 
   // Help / Credit dialog
   let showHelp = false;
+  let helpTab = 'controls'; // 'controls' | 'features' | 'credits' | 'about' | 'tryitout'
 
   // Statistics panel state
   let showStats = false;
@@ -175,6 +177,8 @@
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,300;1,9..40,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 </svelte:head>
 
+<!-- svelte-ignore a11y-click-events-have-key-events -->
+<!-- svelte-ignore a11y-no-noninteractive-element-interactions -->
 <main class="app-container" on:click={handleClickOutside}>
   <!-- Floating toolbar -->
   <header class="toolbar">
@@ -251,6 +255,8 @@
         </button>
 
         {#if showTrackPicker}
+          <!-- svelte-ignore a11y-click-events-have-key-events -->
+          <!-- svelte-ignore a11y-no-static-element-interactions -->
           <div class="track-dropdown" on:click|stopPropagation>
             <div class="track-dd-header">
               <span class="track-dd-title">Ambient Music</span>
@@ -279,6 +285,8 @@
       </button>
 
       {#if showPaletteDropdown}
+        <!-- svelte-ignore a11y-click-events-have-key-events -->
+        <!-- svelte-ignore a11y-no-noninteractive-element-interactions -->
         <div class="palette-dropdown" role="listbox" on:click|stopPropagation>
           <div class="palette-dd-header">
             <span class="palette-dd-title">Palettes</span>
@@ -381,7 +389,7 @@
     <!-- svelte-ignore a11y-click-events-have-key-events -->
     <!-- svelte-ignore a11y-no-static-element-interactions -->
     <div class="dialog-overlay" on:click={() => showHelp = false}>
-      <div class="dialog" on:click|stopPropagation>
+      <div class="dialog help-dialog" on:click|stopPropagation>
         <div class="dialog-header">
           <div class="dialog-brand">
             <img src="/logo.svg" alt="Logo" class="dialog-logo" />
@@ -395,69 +403,96 @@
           </button>
         </div>
 
+        <div class="help-tabs">
+          <button class="help-tab-btn" class:active={helpTab === 'controls'} on:click={() => helpTab = 'controls'}>Controls</button>
+          <button class="help-tab-btn" class:active={helpTab === 'features'} on:click={() => helpTab = 'features'}>Features</button>
+          <button class="help-tab-btn" class:active={helpTab === 'credits'} on:click={() => helpTab = 'credits'}>Credits</button>
+          <button class="help-tab-btn" class:active={helpTab === 'about'} on:click={() => helpTab = 'about'}>About</button>
+          <button class="help-tab-btn" class:active={helpTab === 'tryitout'} on:click={() => helpTab = 'tryitout'}>Try it out</button>
+        </div>
+
         <div class="dialog-body">
-          <div class="dialog-section">
-            <span class="dialog-section-title">controls</span>
-            <div class="help-grid">
-              <kbd>Double-click</kbd><span>Create node</span>
-              <kbd>Click</kbd><span>Select node/edge</span>
-              <kbd>Drag</kbd><span>Move node</span>
-              <kbd>Double-click node</kbd><span>Edit node</span>
-              <kbd>Scroll</kbd><span>Zoom in/out</span>
-              <kbd>Drag canvas</kbd><span>Pan</span>
-              <kbd>+ button</kbd><span>Add relation</span>
-              <kbd>x button</kbd><span>Delete</span>
+          {#if helpTab === 'controls'}
+            <div class="dialog-section">
+              <span class="dialog-section-title">interface & navigation</span>
+              <div class="help-grid">
+                <kbd>Double-click</kbd><span>Create node</span>
+                <kbd>Click</kbd><span>Select node/edge</span>
+                <kbd>Drag</kbd><span>Move node</span>
+                <kbd>Double-click node</kbd><span>Edit node details</span>
+                <kbd>Yellow icon</kbd><span>Open Markdown notes</span>
+                <kbd>Scroll / Pinch</kbd><span>Zoom in/out</span>
+                <kbd>Drag / Pan</kbd><span>Pan canvas</span>
+                <kbd>+ button</kbd><span>Add relation</span>
+                <kbd>x button</kbd><span>Delete</span>
+              </div>
             </div>
-          </div>
-
-          <div class="dialog-section">
-            <span class="dialog-section-title">features</span>
-            <ul class="feature-list">
-              <li>Node size and color scale by connection count</li>
-              <li>Edge thickness reflects importance of connected nodes</li>
-              <li>Constellation mode animates with ambient music</li>
-              <li>Export/import workspaces as JSON with palette</li>
-              <li>Built-in demo graph to explore the tool instantly</li>
-              <li>5 color palettes with automatic degree mapping</li>
-            </ul>
-          </div>
-
-          <div class="dialog-section">
-            <span class="dialog-section-title">music credits</span>
-            <div class="credit-list">
-              {#each tracks as track}
-                <div class="credit-row">
-                  <span class="credit-title">{track.title}</span>
-                  <span class="credit-author">by {track.author}</span>
+          {:else}
+            {#if helpTab === 'features'}
+              <div class="dialog-section">
+                <span class="dialog-section-title">intelligent visualization</span>
+                <ul class="feature-list">
+                  <li>Node size and color scale by connection count</li>
+                  <li>Markdown Notes: floating, resizable, and pinnable windows with edit/preview modes</li>
+                  <li>Unsaved changes protection: prompts to save/discard before closing note windows</li>
+                  <li>Pinch-to-zoom and touch pan support for seamless mobile experience</li>
+                  <li>Constellation mode: ambient animations with looping space music</li>
+                  <li>Export/import workspaces as JSON with all palette settings and notes</li>
+                </ul>
+              </div>
+            {:else}
+              {#if helpTab === 'credits'}
+                <div class="dialog-section">
+                  <span class="dialog-section-title">music credits</span>
+                  <div class="credit-list">
+                    {#each tracks as track}
+                      <div class="credit-row">
+                        <span class="credit-title">{track.title}</span>
+                        <span class="credit-author">by {track.author}</span>
+                      </div>
+                    {/each}
+                    <span class="credit-source">All music from pixabay.com (free license)</span>
+                  </div>
                 </div>
-              {/each}
-              <span class="credit-source">All music from pixabay.com (free license)</span>
-            </div>
-          </div>
-
-          <div class="dialog-section">
-            <span class="dialog-section-title">about</span>
-            <p class="about-text">
-              Built with Svelte 5 and Vite. Designed for brainstorming and clustering ideas — importance emerges naturally from connections.
-            </p>
-          </div>
-
-          <div class="dialog-section">
-            <span class="dialog-section-title">try it out</span>
-            <p class="about-text" style="margin-bottom: 10px;">
-              Load a sample graph to see how node mapping reveals what matters most. This demo maps the challenges of launching a startup — watch how Funding, MVP, and Team emerge as critical nodes.
-            </p>
-            <button class="demo-btn" on:click={() => { loadDemoData(); showHelp = false; setTimeout(handleFitAll, 100); }}>
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>
-              Load Demo — Startup Launch
-            </button>
-          </div>
+              {:else}
+                {#if helpTab === 'about'}
+                  <div class="dialog-section">
+                    <span class="dialog-section-title">about the project</span>
+                    <p class="about-text">
+                      Built with Svelte 5 and Vite. Designed for brainstorming and clustering ideas — importance emerges naturally from connections.
+                    </p>
+                    <p class="about-text" style="margin-top: 10px;">
+                      Graphn follows the <strong>Observatory</strong> design philosophy: a deep-space cartography aesthetic focusing on technical precision and atmospheric clarity.
+                    </p>
+                  </div>
+                {:else}
+                  {#if helpTab === 'tryitout'}
+                    <div class="dialog-section">
+                      <span class="dialog-section-title">sample workspace</span>
+                      <p class="about-text" style="margin-bottom: 10px;">
+                        Load a sample graph to see how node mapping reveals what matters most. This demo maps the challenges of launching a startup — watch how Funding, MVP, and Team emerge as critical nodes.
+                      </p>
+                      <button class="demo-btn" on:click={() => { loadDemoData(); showHelp = false; setTimeout(handleFitAll, 100); }}>
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                        Load Demo — Startup Launch
+                      </button>
+                    </div>
+                  {/if}
+                {/if}
+              {/if}
+            {/if}
+          {/if}
         </div>
       </div>
     </div>
   {/if}
 
   <Popups />
+
+  <!-- Note Windows -->
+  {#each $activeNotes as windowState (windowState.nodeId)}
+    <NoteWindow {windowState} />
+  {/each}
 </main>
 
 <style>
@@ -1338,6 +1373,42 @@
 
   .demo-btn:active {
     transform: scale(0.98);
+  }
+
+  /* ─── HELP TABS ─── */
+  .help-tabs {
+    display: flex;
+    gap: 4px;
+    padding: 8px 16px;
+    border-bottom: 1px solid var(--border-color);
+    background: rgba(255, 255, 255, 0.01);
+    overflow-x: auto;
+  }
+
+  .help-tab-btn {
+    background: transparent;
+    border: none;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-muted);
+    padding: 6px 12px;
+    cursor: pointer;
+    border-radius: 6px;
+    transition: all 0.15s;
+    white-space: nowrap;
+  }
+
+  .help-tab-btn:hover {
+    color: var(--text-color);
+    background: rgba(148, 163, 184, 0.06);
+  }
+
+  .help-tab-btn.active {
+    color: var(--primary-color);
+    background: rgba(6, 182, 212, 0.08);
   }
 
   /* ─── SCROLLBAR ─── */

@@ -1,9 +1,10 @@
 <script>
-  import { popupState } from '../ui-store.js';
+  import { popupState, openNote } from '../ui-store.js';
   import { addNode, addEdge, updateNode, updateEdge, nodes, edges } from '../store.js';
 
   let nodeLabel = '';
   let nodeDescription = '';
+  let nodeNotes = ''; // Still kept for ADD_NODE to allow initial notes
 
   // Array to hold multiple target relations for the new node
   let targetRelations = [];
@@ -15,9 +16,10 @@
   import { onMount, tick } from 'svelte';
 
   function closePopup() {
-    popupState.set({ type: null, x: 0, y: 0, sourceNodeId: null, editTargetId: null });
+    popupState.set({ type: null, x: 0, y: 0, sourceNodeId: null, editTargetId: null, startMode: null });
     nodeLabel = '';
     nodeDescription = '';
+    nodeNotes = '';
     targetRelations = [];
     edgeLabel = '';
     edgeDescription = '';
@@ -26,7 +28,7 @@
 
   function handleAddNode() {
     if (nodeLabel.trim() === '') return;
-    const newId = addNode($popupState.svgX, $popupState.svgY, nodeLabel, nodeDescription);
+    const newId = addNode($popupState.svgX, $popupState.svgY, nodeLabel, nodeDescription, nodeNotes);
     targetRelations.forEach(rel => {
       if (rel.selected && rel.targetId) {
         addEdge(newId, rel.targetId, rel.label, rel.description || '');
@@ -45,6 +47,17 @@
     if (nodeLabel.trim() === '') return;
     updateNode($popupState.editTargetId, { label: nodeLabel, description: nodeDescription });
     closePopup();
+  }
+
+  function handleOpenNotes() {
+    const targetId = $popupState.editTargetId || $popupState.sourceNodeId;
+    // For ADD_NODE, we can't open a window yet because ID isn't generated until "Create"
+    // So we just keep nodeNotes in ADD_NODE popup.
+    // For EDIT_NODE, we open the window:
+    if ($popupState.editTargetId) {
+      openNote($popupState.editTargetId, $popupState.x + 20, $popupState.y + 20, 'edit');
+      closePopup();
+    }
   }
 
   function handleEditRelation() {
@@ -68,6 +81,7 @@
     if (nodeToEdit && nodeLabel === '') {
       nodeLabel = nodeToEdit.label || '';
       nodeDescription = nodeToEdit.description || '';
+      nodeNotes = nodeToEdit.notes || '';
     }
   } else if ($popupState.type === 'EDIT_RELATION') {
     const edgeToEdit = $edges.find(e => e.id === $popupState.editTargetId);
@@ -128,6 +142,13 @@
         rows="2"
       ></textarea>
 
+      <div class="popup-actions">
+        <button class="primary-btn" style="flex: 1" on:click={handleAddNode}>
+          <span>Create</span>
+          <kbd>Enter</kbd>
+        </button>
+      </div>
+
       {#if targetRelations.length > 0}
         <div class="relations-section">
           <span class="section-label">connect to</span>
@@ -152,11 +173,6 @@
           </div>
         </div>
       {/if}
-
-      <button class="primary-btn" on:click={handleAddNode}>
-        <span>Create</span>
-        <kbd>Enter</kbd>
-      </button>
     </div>
   </div>
 {/if}
@@ -220,7 +236,13 @@
         bind:value={nodeDescription}
         rows="2"
       ></textarea>
-      <button class="primary-btn" on:click={handleEditNode}>Save</button>
+      <div class="popup-actions">
+        <button class="secondary-btn" on:click={handleOpenNotes}>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/></svg>
+          Notes
+        </button>
+        <button class="primary-btn" on:click={handleEditNode}>Save</button>
+      </div>
     </div>
   </div>
 {/if}
@@ -497,4 +519,33 @@
   .relations-list::-webkit-scrollbar { width: 4px; }
   .relations-list::-webkit-scrollbar-track { background: transparent; }
   .relations-list::-webkit-scrollbar-thumb { background: var(--border-color); border-radius: 4px; }
+
+  /* New note styles */
+  .popup-actions {
+    display: flex;
+    gap: 8px;
+  }
+
+  .secondary-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    background: rgba(148, 163, 184, 0.08);
+    color: var(--text-color);
+    border: 1px solid var(--border-color);
+    padding: 9px 12px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 500;
+    font-family: var(--font-body, 'DM Sans', system-ui, sans-serif);
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+
+  .secondary-btn:hover {
+    background: rgba(148, 163, 184, 0.12);
+    border-color: var(--text-muted);
+    color: var(--text-bright);
+  }
 </style>

@@ -19,13 +19,35 @@ An interactive graph visualization tool where importance emerges naturally from 
 ## Features
 
 - **Automatic visual importance** — Node size, color, label size, glow intensity, and edge thickness all scale with connection count. No manual styling needed.
-- **Color palettes** — 5 colormaps (Default, Ocean, Warm, Pastel, Neon) that map degree to color like matplotlib.
+- **Markdown Notes** — Floating, movable, resizable, and pinnable note windows for every node. Supports rich text formatting via Markdown with edit/preview modes.
+- **Touch & Gestures** — Full support for mobile devices with pinch-to-zoom and touch panning.
+- **Color palettes** — 5 colormaps (Default, Ocean, Warm, Pastel, Neon) that map degree to color.
 - **Constellation mode** — Ambient animation with gentle node vibration, pulsing glow, and looping background music. Three tracks included.
 - **Infinite canvas** — Pan and zoom with no boundaries. Dot grid background.
 - **Graph statistics** — Live stats panel showing node/edge counts, most connected nodes, and degree breakdown.
-- **Export / Import** — Save and load workspaces as JSON. Palette and preferences included.
+- **Export / Import** — Save and load workspaces as JSON. Palette, preferences, and notes included.
 - **Dark / Light theme** — Observatory-inspired dark theme by default.
-- **Help & Credits** — Built-in dialog with keyboard shortcuts, features, and music credits.
+
+## Usage
+
+| Action | How |
+|---|---|
+| Create node | Double-click empty canvas |
+| Move node | Drag it |
+| Select node | Click it |
+| Open Notes | Click the yellow document icon on a node |
+| Edit node details | Double-click the node |
+| Delete node | Select, click X button |
+| Add relation | Select node, click + button |
+| Edit relation | Double-click the edge |
+| Delete relation | Click edge, click X button |
+| Pan canvas | Drag empty area, pan with touch, or middle-click drag |
+| Zoom | Scroll wheel or pinch-to-zoom |
+| Note Controls | Drag header to move, bottom-right to resize, pin icon to keep open |
+| Fit all nodes | Fit button in toolbar |
+| Constellation mode | Play button in toolbar |
+| Switch music | Music note button next to play |
+| Switch palette | Color dots button in toolbar |
 
 ## Getting Started
 
@@ -35,25 +57,6 @@ npm run dev
 ```
 
 Open `http://localhost:5173` in your browser.
-
-## Usage
-
-| Action | How |
-|---|---|
-| Create node | Double-click empty canvas |
-| Move node | Drag it |
-| Select node | Click it |
-| Edit node | Double-click it |
-| Delete node | Select, click X button |
-| Add relation | Select node, click + button |
-| Edit relation | Double-click the edge |
-| Delete relation | Click edge, click X button |
-| Pan canvas | Drag empty area or middle-click drag |
-| Zoom | Scroll wheel |
-| Fit all nodes | Fit button in toolbar |
-| Constellation mode | Play button in toolbar |
-| Switch music | Music note button next to play |
-| Switch palette | Color dots button in toolbar |
 
 ## Build
 

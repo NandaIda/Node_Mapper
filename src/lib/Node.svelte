@@ -1,5 +1,5 @@
 <script>
-  import { selectedNodeId, popupState, hoveredNodeId } from '../ui-store.js';
+  import { selectedNodeId, popupState, hoveredNodeId, openNote } from '../ui-store.js';
   import { removeNode } from '../store.js';
   import { getNodeColorByDegree, currentCmap } from '../colormap-store.js';
   export let node;
@@ -44,6 +44,15 @@
       sourceNodeId: null,
       editTargetId: node.id
     });
+  }
+
+  function handleOpenNotes(e) {
+    const svg = e.target.closest('svg');
+    const ctm = svg.getScreenCTM();
+    const screenX = ctm.a * node.x + ctm.e + 40;
+    const screenY = ctm.d * node.y + ctm.f;
+    // Use the new window-based openNote
+    openNote(node.id, screenX, screenY, 'preview');
   }
 </script>
 
@@ -98,6 +107,17 @@
     >
       {displayDesc}
     </text>
+  {/if}
+
+  {#if node.notes}
+    <g transform="translate({radius * 0.8}, {radius * 0.2})">
+      <!-- Inner group handles the scale transform relative to local (0,0) -->
+      <!-- svelte-ignore a11y-no-static-element-interactions -->
+      <g class="notes-icon-btn" on:mousedown|stopPropagation={handleOpenNotes}>
+        <rect x="-6" y="-6" width="12" height="12" rx="2" fill="var(--bg-elevated)" stroke="#fbbf24" stroke-width="1.2" />
+        <path d="M-3 -2 H3 M-3 0 H3 M-3 2 H1" stroke="#fbbf24" stroke-width="1" stroke-linecap="round" />
+      </g>
+    </g>
   {/if}
 
   {#if isSelected}
@@ -175,5 +195,13 @@
   .action-btn:hover circle {
     opacity: 1;
     filter: drop-shadow(0 2px 10px rgba(0,0,0,0.5));
+  }
+  .notes-icon-btn {
+    cursor: pointer;
+    transition: transform 0.15s ease;
+    transform-origin: 0 0;
+  }
+  .notes-icon-btn:hover {
+    transform: scale(1.25);
   }
 </style>
